@@ -1,0 +1,8 @@
+typer >= 0.12.4
+docstring_parser  # typer help text from docstring
+typing-extensions ; python_version < '3.9'
+verboselogs
+
+# For test-build-consistency
+# build
+wheel

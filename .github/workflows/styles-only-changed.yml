@@ -1,0 +1,21 @@
+name: Style check on changed files
+
+on: pull_request
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  ruff-format-on-changes:
+    uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
+    with:
+      check-type: format
+  ruff-isort-on-changes:
+    uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
+    with:
+      check-type: isort
+  ruff-lint-on-changes:
+    uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
+    with:
+      check-type: lint

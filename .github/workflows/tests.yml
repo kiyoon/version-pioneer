@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python and uv
+        uses: deargen/workflows/actions/setup-python-and-uv@master
+      - name: Cache uv environment
+        id: cache-uv
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-uv
+        with:
+          path: .venv
+          key: ${{ runner.os }}-uv-${{ env.cache-name }}-${{ hashFiles('deps/lock/x86_64-manylinux_2_28/requirements-dev.txt', '.github/workflows/tests.yml', 'pyproject.toml') }}
+      - if: steps.cache-uv.outputs.cache-hit == 'true'
+        run: echo 'uv cache hit!'
+      - name: Install dependencies
+        if: steps.cache-uv.outputs.cache-hit != 'true'
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r deps/lock/x86_64-manylinux_2_28/requirements-dev.txt
+          uv pip install -e .
+      - name: Run pytest
+        uses: deargen/workflows/actions/run-pytest@master
+
+  doctest:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python and uv
+        uses: deargen/workflows/actions/setup-python-and-uv@master
+      - name: Cache uv environment
+        id: cache-uv
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-uv
+        with:
+          path: .venv
+          key: ${{ runner.os }}-uv-${{ env.cache-name }}-${{ hashFiles('deps/lock/x86_64-manylinux_2_28/requirements-dev.txt', '.github/workflows/tests.yml', 'pyproject.toml') }}
+      - if: steps.cache-uv.outputs.cache-hit == 'true'
+        run: echo 'uv cache hit!'
+      - name: Install dependencies
+        if: steps.cache-uv.outputs.cache-hit != 'true'
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r deps/lock/x86_64-manylinux_2_28/requirements-dev.txt
+          uv pip install -e .
+      - name: Run doctest
+        uses: deargen/workflows/actions/run-doctest@master
+
+  lint-essential:
+    uses: deargen/workflows/.github/workflows/check-ruff.yml@master
+    with:
+      check-type: lint-essential
+      # ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt

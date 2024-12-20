@@ -1,0 +1,214 @@
+[build-system]
+requires = ["hatchling", "hatch-requirements-txt", "tomli ; python_version < '3.11'"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["deps/requirements.in"]
+
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+cli = ["deps/requirements-cli.in"]
+
+[tool.hatch.metadata.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.version-pioneer]
+versionscript = "src/version_pioneer/version_pioneer_core.py"
+versionfile-sdist = "src/version_pioneer/_version.py"
+versionfile-wheel = "version_pioneer/_version.py"
+
+[project]
+name = "version-pioneer"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+description = "Easy VCS-based management of project version strings, with any build backend (setuptools, hatchling etc.) and any programming language support."
+authors = [
+  { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8,<4"
+classifiers = [
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License",
+]
+keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
+
+[project.urls]
+"Homepage" = "https://github.com/kiyoon/version-pioneer"
+
+[project.scripts]
+version-pioneer = "version_pioneer.cli:main"
+
+# Register hatch, pdm plugin
+[project.entry-points.hatch]
+version-pioneer = "version_pioneer.build.hatchling.hooks"
+
+[project.entry-points."pdm.build.hook"]
+version-pioneer = "version_pioneer.build.pdm.hooks:VersionPioneerBuildHook"
+
+[tool.projector.pip-compile]
+# https://github.com/deargen/workflows/blob/master/python-projector
+requirements-in-dir = "deps"
+requirements-out-dir = "deps/lock"
+python-platforms = ["x86_64-manylinux_2_28", "aarch64-apple-darwin", "x86_64-apple-darwin"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=version_pioneer" # CHANGE (name of the importing module name)
+testpaths = ["tests"]
+
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.coverage.report]
+omit = [
+  "src/version_pioneer/_version.py", # CHANGE
+  # OPTIONALLY ADD MORE LATER
+]
+
+[tool.pyright]
+include = ["src"]
+
+typeCheckingMode = "standard"
+useLibraryCodeForTypes = true
+autoImportCompletions = true
+
+pythonVersion = "3.8"
+# pythonPlatform = "Linux"
+
+reportDuplicateImport = true
+
+[tool.ruff]
+# Ignore INP001 on these directories
+# The directories that do not contain s, r, and c are already ignored.
+namespace-packages = ["scripts"]
+
+[tool.ruff.lint]
+# OPTIONALLY ADD MORE LATER
+select = [
+  # flake8
+  "E",
+  "F",
+  "W",
+  "B",    # Bugbear
+  "D",    # Docstring
+  "D213", # Multi-line docstring summary should start at the second line (replace D212)
+  "N",    # Naming
+  "C4",   # flake8-comprehensions
+  "UP",   # pyupgrade
+  "SIM",  # simplify
+  "RUF",  # ruff-specific
+  "RET501",  # return
+  "RET502",  # return
+  "RET503",  # return
+  "PTH",  # path
+  "NPY",  # numpy
+  "PD",   # pandas
+  "PYI",  # type stubs for pyright/pylance
+  "PT",   # pytest
+  "PIE",  #
+  "LOG",  # logging
+  "COM818",  # comma misplaced
+  "COM819",  # comma
+  "DTZ",  # datetime
+  "YTT",
+  "ASYNC",
+  "FBT",  # boolean trap
+  "A",    # Shadowing python builtins
+  "EXE",  # executable (shebang)
+  "FA",   # future annotations
+  "ISC",  # Implicit string concatenation
+  "ICN",  # Import convention 
+  "INP",  # Implicit namespace package (no __init__.py)
+  "Q",    # Quotes
+  "RSE",  # raise
+  "SLOT", # __slots__
+  "PL",   # Pylint
+  "TRY",  # try
+  "FAST", # FastAPI
+  "AIR",  # airflow
+  "DOC",  # docstring
+  "TID",  # tidy-imports
+
+  # Not important
+  "T10",  # debug statements
+  "T20",  # print statements
+]
+
+ignore = [
+  "E402",    # Module level import not at top of file
+  "W293",    # Blank line contains whitespace
+  "W291",    # Trailing whitespace
+  "D10",     # Missing docstring in public module / function / etc.
+  "D200",    # One-line docstring should fit on one line with quotes
+  "D205",    # 1 blank line required between summary line and description
+  "D212",    # Multi-line docstring summary should start at the first line
+  "D417",    # require documentation for every function parameter.
+  "D401",    # require an imperative mood for all docstrings.
+  "DOC201",  # missing Return field in docstring
+  "PTH123",  # Path.open should be used instead of built-in open
+  "PT006",   # Pytest parameterize style
+  "N812",    # Lowercase `functional` imported as non-lowercase `F` (import torch.nn.functional as F)
+  "NPY002",  # legacy numpy random
+  "UP017",   # datetime.timezone.utc -> datetime.UTC
+  "SIM108",  # use ternary operator instead of if-else
+  "TRY003",  # long message in except
+  "TRY400",  # logger.exception instead of logger.error
+  "PLR2004", # magic value comparison
+  "PLW2901"  # loop variable overwritten by assignment target
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+    "F401", # Ignore seemingly unused imports (they're meant for re-export)
+]
+# Directories that do not contain s, r, and c
+"[!s][!r][!c]*/**" = ["INP001"] # Implicit namespace package (no __init__.py)
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pycodestyle]
+# Black or ruff will enforce line length to be 88, except for docstrings and comments.
+# We set it to 120 so we have more space for docstrings and comments.
+max-line-length = 120
+
+[tool.ruff.lint.isort]
+## Uncomment this if you want to use Python < 3.10
+# required-imports = [
+#   "from __future__ import annotations",
+# ]
+
+# [tool.ruff.lint.flake8-tidy-imports]
+# Ban certain modules from being imported at module level, instead requiring
+# that they're imported lazily (e.g., within a function definition, if TYPE_CHECKING, etc.)
+# banned-module-level-imports = ["torch"]
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"pytorch_lightning".msg = "Use lightning.fabric instead"
+"lightning.pytorch".msg = "Use lightning.fabric instead"
+"lightning_fabric".msg = "Use lightning.fabric instead"
+"accelerate".msg = "Use lightning.fabric instead"
+"os.system".msg = "Use subprocess.run or subprocess.Popen instead"
+"easydict".msg = "Use typing.TypedDict instead (also consider dataclasses and pydantic)"
+
+[tool.ruff.lint.pylint]
+max-args = 15
+max-bool-expr = 10
+max-statements = 100
+max-returns = 6
+max-public-methods = 30
+max-nested-blocks = 10
+max-locals = 30
+max-branches = 24
+
