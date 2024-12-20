@@ -8,7 +8,7 @@ versionfile_source = "src/version_pioneer/_version.py" # CHANGE
 [project]
 name = "version-pioneer" # CHANGE
 dynamic = ["version", "dependencies", "optional-dependencies"]
-description = "Python project template" # OPTIONALLY CHANGE
+description = "Easy VCS-based management of project version strings, with any build backend (hatchling etc.) and any programming language support."
 authors = [
   { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
 ]
@@ -28,7 +28,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: MIT License",
 ]
-keywords = ["development", "template"]
+keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
 
 [project.urls]
 "Homepage" = "https://github.com/kiyoon/version-pioneer" # OPTIONALLY CHANGE
@@ -73,7 +73,7 @@ typeCheckingMode = "standard"
 useLibraryCodeForTypes = true
 autoImportCompletions = true
 
-pythonVersion = "3.9"
+pythonVersion = "3.8"
 # pythonPlatform = "Linux"
 
 reportDuplicateImport = true

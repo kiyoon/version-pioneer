@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Generate a version number from Git tags (e.g. tag "v1.2.3" and 4 commits -> "1.2.3+4.g123abcdef").
 
@@ -12,11 +13,10 @@ Note:
     - `src/my_package/__init__.py` should import `__version__` from this file.
     - It should also be able to be run as a script to print the version number.
     - Some may want to `exec` this file and get __version__ from the globals. This is how hatch determines the version.
+        - Using `from __future__ import ...` makes it hard to `exec` this file, so you must not use it here.
 """
 
 # ruff: noqa: T201
-
-from __future__ import annotations
 
 import errno
 import functools
@@ -53,17 +53,18 @@ class VersionPioneerConfig:
     # if there is no .git, like it's a source tarball downloaded from GitHub Releases,
     # find version from the name of the parent directory.
     # e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
-    parentdir_prefix: str | None = None
+    parentdir_prefix: "str | None" = None
     verbose: bool = False
 
 
-# type of __version_dict__
 class VersionDict(TypedDict):
-    version: str | None
-    full_revisionid: str | None
-    dirty: bool | None
-    error: str | None
-    date: str | None
+    """Type of __version_dict__."""
+
+    version: "str | None"
+    full_revisionid: "str | None"
+    dirty: "bool | None"
+    error: "str | None"
+    date: "str | None"
 
 
 try:
@@ -87,27 +88,27 @@ class GitPieces:
     version string, meaning we're inside a checked out source tree.
     """
 
-    error: str | None
     long: str
     short: str
     branch: str
-    closest_tag: str | None
+    closest_tag: "str | None"
     distance: int
     dirty: bool
-    date: str | None = None
+    error: "str | None"
+    date: "str | None" = None
 
     @classmethod
     def from_vcs(
-        cls: type[GitPieces],
+        cls: "type[GitPieces]",
         tag_prefix: str,
-        root: str | PathLike,
+        root: "str | PathLike",
         *,
         verbose: bool = False,
-    ) -> GitPieces:
+    ) -> "GitPieces":
         if sys.platform == "win32":
-            GITS = ["git.cmd", "git.exe"]
+            git_commands = ["git.cmd", "git.exe"]
         else:
-            GITS = ["git"]
+            git_commands = ["git"]
 
         # GIT_DIR can interfere with correct operation of Versioneer.
         # It may be intended to be passed to the Versioneer-versioned project,
@@ -117,7 +118,7 @@ class GitPieces:
         runner = functools.partial(_run_command, env=env, verbose=verbose)
 
         _, rc = runner(
-            GITS, ["rev-parse", "--git-dir"], cwd=root, hide_stderr=not verbose
+            git_commands, ["rev-parse", "--git-dir"], cwd=root, hide_stderr=not verbose
         )
         if rc != 0:
             if verbose:
@@ -127,7 +128,7 @@ class GitPieces:
         # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
         # if there isn't one, this yields HEX[-dirty] (no NUM)
         describe_out, rc = runner(
-            GITS,
+            git_commands,
             [
                 "describe",
                 "--tags",
@@ -143,7 +144,7 @@ class GitPieces:
         if describe_out is None:
             raise NotThisMethodError("'git describe' failed")
         describe_out = describe_out.strip()
-        full_out, rc = runner(GITS, ["rev-parse", "HEAD"], cwd=root)
+        full_out, rc = runner(git_commands, ["rev-parse", "HEAD"], cwd=root)
         if full_out is None:
             raise NotThisMethodError("'git rev-parse' failed")
         full_out = full_out.strip()
@@ -153,7 +154,9 @@ class GitPieces:
         pieces["short"] = full_out[:7]  # maybe improved later
         pieces["error"] = None
 
-        branch_name, rc = runner(GITS, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=root)
+        branch_name, rc = runner(
+            git_commands, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=root
+        )
         # --abbrev-ref was added in git-1.6.3
         if rc != 0 or branch_name is None:
             raise NotThisMethodError("'git rev-parse --abbrev-ref' returned error")
@@ -163,7 +166,7 @@ class GitPieces:
             # If we aren't exactly on a branch, pick a branch which represents
             # the current commit. If all else fails, we are on a branchless
             # commit.
-            branches, rc = runner(GITS, ["branch", "--contains"], cwd=root)
+            branches, rc = runner(git_commands, ["branch", "--contains"], cwd=root)
             # --contains was added in git-1.5.4
             if rc != 0 or branches is None:
                 raise NotThisMethodError("'git branch --contains' returned error")
@@ -227,12 +230,14 @@ class GitPieces:
         else:
             # HEX: no tags
             pieces["closest_tag"] = None
-            out, rc = runner(GITS, ["rev-list", "HEAD", "--left-right"], cwd=root)
+            out, rc = runner(
+                git_commands, ["rev-list", "HEAD", "--left-right"], cwd=root
+            )
             assert out is not None
             pieces["distance"] = len(out.split())  # total number of commits
 
         # commit date: see ISO-8601 comment in git_versions_from_keywords()
-        out, rc = runner(GITS, ["show", "-s", "--format=%ci", "HEAD"], cwd=root)
+        out, rc = runner(git_commands, ["show", "-s", "--format=%ci", "HEAD"], cwd=root)
         assert out is not None
         date = out.strip()
         # Use only the last line.  Previous lines may contain GPG signature
@@ -305,7 +310,7 @@ class GitPieces:
         return rendered
 
     @staticmethod
-    def _pep440_split_post(ver: str) -> tuple[str, int | None]:
+    def _pep440_split_post(ver: str) -> "tuple[str, int | None]":
         """
         Split pep440 version string at the post-release segment.
 
@@ -505,7 +510,7 @@ class GitPieces:
         }
 
 
-def _get_keywords() -> dict[str, str]:
+def _get_keywords() -> "dict[str, str]":
     """Get the keywords needed to look up the version information."""
     # these strings will be replaced by git during git-archive.
     # setup.py/versioneer.py will grep for the variable names, so they must
@@ -519,14 +524,14 @@ def _get_keywords() -> dict[str, str]:
 
 
 def _run_command(
-    commands: list[str],
-    args: list[str | PathLike],
+    commands: "list[str]",
+    args: "list[str | PathLike]",
     *,
-    cwd: str | PathLike | None = None,
+    cwd: "str | PathLike | None" = None,
     hide_stderr: bool = False,
-    env: dict[str, str] | None = None,
+    env: "dict[str, str] | None" = None,
     verbose: bool = False,
-) -> tuple[str | None, int | None]:
+) -> "tuple[str | None, int | None]":
     """Call the given command(s)."""
     assert isinstance(commands, list)
     process = None
@@ -572,7 +577,7 @@ def _run_command(
 
 
 def _git_versions_from_keywords(
-    keywords: dict[str, str],
+    keywords: "dict[str, str]",
     tag_prefix: str,
     *,
     verbose: bool = False,
@@ -601,8 +606,8 @@ def _git_versions_from_keywords(
     refs = {r.strip() for r in refnames.strip("()").split(",")}
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
-    TAG = "tag: "
-    tags = {r[len(TAG) :] for r in refs if r.startswith(TAG)}
+    tag_prefix = "tag: "
+    tags = {r[len(tag_prefix) :] for r in refs if r.startswith(tag_prefix)}
     if not tags:
         # Either we're using git < 1.8.3, or there really are no tags. We use
         # a heuristic: assume all version tags have a digit. The old git %d
@@ -647,7 +652,7 @@ def _git_versions_from_keywords(
 
 
 def _find_root_dir_with_file(
-    source: str | PathLike, marker: str | Iterable[str]
+    source: "str | PathLike", marker: "str | Iterable[str]"
 ) -> Path:
     """
     Find the first parent directory containing a specific "marker", relative to a file path.
@@ -666,7 +671,7 @@ def _find_root_dir_with_file(
 
 
 def _versions_from_parentdir(
-    parentdir_prefix: str, root: str | PathLike, *, verbose: bool = False
+    parentdir_prefix: str, root: "str | PathLike", *, verbose: bool = False
 ) -> VersionDict:
     """
     Try to determine the version from the parent directory name.
@@ -702,7 +707,7 @@ def _versions_from_parentdir(
     raise NotThisMethodError("rootdir doesn't start with parentdir_prefix")
 
 
-def get_versions(cfg: VersionPioneerConfig | None = None) -> VersionDict:
+def get_versions(cfg: "VersionPioneerConfig | None" = None) -> VersionDict:
     """Get version information or return default if unable to do so."""
     if cfg is None:
         cfg = VersionPioneerConfig()
@@ -738,7 +743,11 @@ def get_versions(cfg: VersionPioneerConfig | None = None) -> VersionDict:
     }
 
 
-__version__ = get_versions()["version"]
+__version_dict__: VersionDict = get_versions()
+__version__ = __version_dict__["version"]
+
 
 if __name__ == "__main__":
-    print(__version__)
+    import json
+
+    print(json.dumps(__version_dict__))
