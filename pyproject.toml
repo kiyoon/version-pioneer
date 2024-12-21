@@ -1,40 +1,45 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt"]
+requires = ["hatchling", "hatch-requirements-txt", "tomli ; python_version < '3.11'"]
 build-backend = "hatchling.build"
 
 [tool.version-pioneer]
-versionfile_source = "src/version_pioneer/_version.py" # CHANGE
+versionfile-source = "src/version_pioneer/_version.py" # CHANGE
+versionfile-build = "version_pioneer/_version.py" # CHANGE
 
 [project]
 name = "version-pioneer" # CHANGE
 dynamic = ["version", "dependencies", "optional-dependencies"]
-description = "Easy VCS-based management of project version strings, with any build backend (hatchling etc.) and any programming language support."
-authors = [
-  { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
-]
-readme = "README.md"
-license = { file = "LICENSE" }
+# description = "Easy VCS-based management of project version strings, with any build backend (hatchling etc.) and any programming language support."
+# authors = [
+#   { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
+# ]
+# readme = "README.md"
+# license = { file = "LICENSE" }
 requires-python = ">=3.8,<4"
-classifiers = [
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Programming Language :: Python :: 3.13",
-  "License :: OSI Approved :: MIT License",
-]
-keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
+# classifiers = [
+#   "Programming Language :: Python :: Implementation :: CPython",
+#   "Programming Language :: Python :: Implementation :: PyPy",
+#   "Programming Language :: Python",
+#   "Programming Language :: Python :: 3",
+#   "Programming Language :: Python :: 3.8",
+#   "Programming Language :: Python :: 3.9",
+#   "Programming Language :: Python :: 3.10",
+#   "Programming Language :: Python :: 3.11",
+#   "Programming Language :: Python :: 3.12",
+#   "Programming Language :: Python :: 3.13",
+#   "License :: OSI Approved :: MIT License",
+# ]
+# keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
 
 [project.urls]
 "Homepage" = "https://github.com/kiyoon/version-pioneer" # OPTIONALLY CHANGE
 
 [project.scripts]
 version-pioneer = "version_pioneer.cli:main"  # CHANGE
+
+# Register hatch plugin
+[project.entry-points.hatch]
+version-pioneer = "version_pioneer.backends.hatchling.hooks"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["deps/requirements.in"]

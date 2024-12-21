@@ -13,10 +13,15 @@ Note:
     - `src/my_package/__init__.py` should import `__version__` from this file.
     - It should also be able to be run as a script to print the version number.
     - Some may want to `exec` this file and get __version__ from the globals. This is how hatch determines the version.
-        - Using `from __future__ import ...` makes it hard to `exec` this file, so you must not use it here.
+        - Using `from __future__ import ...` with dataclasses makes it hard to `exec` this file, so you MUST NOT use both here.
+            - See https://github.com/mkdocs/mkdocs/issues/3141
+              https://github.com/pypa/hatch/issues/1863
+              https://github.com/sqlalchemy/alembic/issues/1419
+            - For now, we don't future import. In dataclass definition, we use `typing.Optional` instead of `| None`
+              until we drop support for Python 3.9.
 """
 
-# ruff: noqa: T201
+# ruff: noqa: T201 FA100
 
 import errno
 import functools
@@ -29,7 +34,7 @@ from dataclasses import dataclass
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Optional, TypedDict
 
 
 class VersionStyle(str, Enum):
@@ -53,7 +58,7 @@ class VersionPioneerConfig:
     # if there is no .git, like it's a source tarball downloaded from GitHub Releases,
     # find version from the name of the parent directory.
     # e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
-    parentdir_prefix: "str | None" = None
+    parentdir_prefix: Optional[str] = None
     verbose: bool = False
 
 
@@ -91,11 +96,11 @@ class GitPieces:
     long: str
     short: str
     branch: str
-    closest_tag: "str | None"
+    closest_tag: Optional[str]
     distance: int
     dirty: bool
-    error: "str | None"
-    date: "str | None" = None
+    error: Optional[str]
+    date: Optional[str] = None
 
     @classmethod
     def from_vcs(
