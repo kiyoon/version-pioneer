@@ -60,7 +60,7 @@ class CustomPioneerBuildHook(BuildHookInterface):
         versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
 
         build_data["force_include"][self.temp_version_file.name] = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-build"]
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
         )
 
     def finalize(
