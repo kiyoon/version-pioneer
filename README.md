@@ -39,9 +39,9 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 - Works with any language, not just Python.
 - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
 
-## 🚦 Usage
+## 🚦 Usage (with build backend hooks) 
 
-Now that we understand how it works
+For `setuptools`, `hatchling` and `pdm-backend`, you can configure using the provided plugins. Below section describe how they work, so you can customise the behaviour by making your own hook as well, if you wish!
 
 1. Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project.
 2. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
@@ -151,10 +151,10 @@ Run it in your project to see what it prints. Change git tags, commit, and see h
 ```console
 $ git tag v1.2.3
 $ python _version.py
-{"version": "1.2.3", "full-revisionid": "xxxxxx", "dirty": False, "error": None, "date": "2024-12-17T12:25:42+0900"}
+{"version": "1.2.3", "full_revisionid": "xxxxxx", "dirty": False, "error": None, "date": "2024-12-17T12:25:42+0900"}
 $ git commit --allow-empty -m "commit"
 $ python _version.py
-{"version": "1.2.3+1.gxxxxxxx", "full-revisionid": "xxxxxx", "dirty": True, "error": None, "date": "2024-12-17T12:25:42+0900"}
+{"version": "1.2.3+1.gxxxxxxx", "full_revisionid": "xxxxxx", "dirty": True, "error": None, "date": "2024-12-17T12:25:42+0900"}
 ```
 
 ### Basic: converting _version.py to a constant version string (for build)
@@ -170,7 +170,7 @@ exec(version_py, module_globals)
 print(module_globals["__version_dict__"])
 ```
 
-### Basic example: building a Python package (replacing _version.py to a constant)
+### Basic: building a Python package (replacing _version.py to a constant)
 
 Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project (like `src/my_project/_version.py`). When you install your package like `pip install -e .`, the code is unchanged, so it will always print up-to-date version string from git tags.
 
