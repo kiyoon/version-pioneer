@@ -1,4 +1,4 @@
-# 🧗🏽 Version-Pioneer: General-Purpose Versioneer without Boilerplate. 
+# 🧗🏽 Version-Pioneer: General-Purpose Versioneer for Any Build Backends
 
 ## Background
 
@@ -32,12 +32,12 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 
 **🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
 
-- **Highly customisable**: It's a easy-to-read script. Customise how you format or resolve the version string.
-- Runs with Python 3.8+, no dependencies.
+- **Highly customisable**: It's a easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
+- Runs with Python 3.8+
+- No dependencies like package, config file etc. It runs with one python file. 
 - Works with any build backend with hooks.
 - Works with any language, not just Python.
-- Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4`. Useful for multi-language projects, Chrome Extension, etc.
-
+- Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
 
 ## 🚦 Usage
 
