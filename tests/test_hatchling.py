@@ -1,21 +1,15 @@
 import logging
 import re
 import subprocess
+import textwrap
 from pathlib import Path
 from shutil import rmtree
 
 import pytest
 
-from .utils import run
+from .utils import build_project, run
 
 logger = logging.getLogger(__name__)
-
-
-def build_project(*args, check=True):
-    if not args:
-        args = ["-w"]
-
-    return run("build", *args, check=check)
 
 
 def _verify_resolved_version_py(resolved_version_py_code: str):
@@ -184,21 +178,68 @@ def test_build(new_hatchling_project: Path):
     assert dynamic_version == version_after_commit_resolved
 
 
-def test_invalid_config(new_hatchling_project):
+def test_invalid_config(new_hatchling_project: Path, plugin_dir: Path):
     """
     Missing config makes the build fail with a meaningful error message.
     """
     pyp = new_hatchling_project / "pyproject.toml"
 
     # If we leave out the config for good, the plugin doesn't get activated.
-    pyp.write_text(pyp.read_text() + "[tool.hatch.build.hooks.version-pioneer]")
+    pyp.write_text(
+        textwrap.dedent(f"""
+            [build-system]
+            requires = ["hatchling", "version-pioneer @ {plugin_dir.as_uri()}"]
+            build-backend = "hatchling.build"
+
+            [tool.hatch.version]
+            source = "code"
+            path = "src/my_app/_version.py"
+
+            [tool.hatch.build.hooks.version-pioneer]
+
+            [tool.version-pioneer]
+            # MISSING CONFIGURATION
+
+            [project]
+            name = "my-app"
+            dynamic = ["version"]
+        """),
+    )
 
     out = build_project(check=False)
 
-    # assert "hatch_fancy_pypi_readme.exceptions.ConfigurationError" in out, out
-    # assert (
-    #     "tool.hatch.metadata.hooks.fancy-pypi-readme.content-type is missing." in out
-    # ), out
-    # assert (
-    #     "tool.hatch.metadata.hooks.fancy-pypi-readme.fragments is missing." in out
-    # ), out
+    assert (
+        "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-source' key."
+        in out
+        or "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-build' key."
+        in out
+    ), out
+
+    pyp.write_text(
+        textwrap.dedent(f"""
+            [build-system]
+            requires = ["hatchling", "version-pioneer @ {plugin_dir.as_uri()}"]
+            build-backend = "hatchling.build"
+
+            [tool.hatch.version]
+            source = "code"
+            path = "src/my_app/_version.py"
+
+            [tool.hatch.build.hooks.version-pioneer]
+
+            [tool.version-pioneer]
+            versionfile-source = "src/my_app/_version.py"
+            # MISSING CONFIGURATION
+
+            [project]
+            name = "my-app"
+            dynamic = ["version"]
+        """),
+    )
+
+    out = build_project(check=False)
+
+    assert (
+        "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-build' key."
+        in out
+    ), out

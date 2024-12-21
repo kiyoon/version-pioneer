@@ -1,5 +1,10 @@
+-r requirements.in
+-r requirements-cli.in
+
 pytest
 pytest-coverage
+build
+wheel
 
 # these are intentionally put in dev requirements because users only use one of the backends,
 # and they will already have put it in their requirements anyway.

@@ -28,11 +28,22 @@ class CustomPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
-        # evaluate the original _version.py file to get the computed version
         versionfile_source = Path(
             pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
         )
         version_py = versionfile_source.read_text()
+
+        # Include original version file in the build, because it is needed in CLI
+        self.temp_version_file_original = tempfile.NamedTemporaryFile(  # noqa: SIM115
+            mode="w", delete=True
+        )
+        self.temp_version_file_original.write(version_py)
+        self.temp_version_file_original.flush()
+        build_data["force_include"][self.temp_version_file_original.name] = Path(
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"] + ".orig"
+        )
+
+        # evaluate the original _version.py file to get the computed version
         module_globals = {}
         exec(version_py, module_globals)
 
@@ -71,4 +82,5 @@ class CustomPioneerBuildHook(BuildHookInterface):
     ) -> None:
         if version != "editable":
             # Delete the temporary version file
+            self.temp_version_file_original.close()
             self.temp_version_file.close()

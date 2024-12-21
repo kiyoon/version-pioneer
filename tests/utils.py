@@ -17,5 +17,12 @@ def run(*args, check=True):
     return process.stdout
 
 
+def build_project(*args, check=True):
+    if not args:
+        args = ["-w"]
+
+    return run("build", *args, check=check)
+
+
 def append(file, text):
     file.write_text(file.read_text() + text)

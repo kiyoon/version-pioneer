@@ -2,19 +2,33 @@
 requires = ["hatchling", "hatch-requirements-txt", "tomli ; python_version < '3.11'"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["deps/requirements.in"]
+
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+cli = ["deps/requirements-cli.in"]
+
+[tool.hatch.version]
+source = "code"
+path = "src/version_pioneer/_version.py"
+# expression = "__version__"  # default
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
 [tool.version-pioneer]
-versionfile-source = "src/version_pioneer/_version.py" # CHANGE
-versionfile-build = "version_pioneer/_version.py" # CHANGE
+versionfile-source = "src/version_pioneer/_version.py"
+versionfile-build = "version_pioneer/_version.py"
 
 [project]
-name = "version-pioneer" # CHANGE
+name = "version-pioneer"
 dynamic = ["version", "dependencies", "optional-dependencies"]
-# description = "Easy VCS-based management of project version strings, with any build backend (hatchling etc.) and any programming language support."
-# authors = [
-#   { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
-# ]
-# readme = "README.md"
-# license = { file = "LICENSE" }
+description = "Easy VCS-based management of project version strings, with any build backend (setuptools, hatchling etc.) and any programming language support."
+authors = [
+  { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
+]
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.8,<4"
 # classifiers = [
 #   "Programming Language :: Python :: Implementation :: CPython",
@@ -32,10 +46,10 @@ requires-python = ">=3.8,<4"
 # keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
 
 [project.urls]
-"Homepage" = "https://github.com/kiyoon/version-pioneer" # OPTIONALLY CHANGE
+"Homepage" = "https://github.com/kiyoon/version-pioneer"
 
 [project.scripts]
-version-pioneer = "version_pioneer.cli:main"  # CHANGE
+version-pioneer = "version_pioneer.cli:main"
 
 # Register hatch, pdm plugin
 [project.entry-points.hatch]
@@ -43,17 +57,6 @@ version-pioneer = "version_pioneer.backends.hatchling.hooks"
 
 [project.entry-points."pdm.build.hook"]
 version-pioneer = "version_pioneer.backends.pdm.hooks"
-
-[tool.hatch.metadata.hooks.requirements_txt]
-files = ["deps/requirements.in"]
-
-[tool.hatch.version]
-source = "code"
-path = "src/version_pioneer/_version.py"
-# expression = "__version__"  # default
-
-[tool.hatch.build.hooks.custom]
-path = "hatch_build.py"
 
 [tool.projector.pip_compile]
 # https://github.com/deargen/workflows/blob/master/python-projector
