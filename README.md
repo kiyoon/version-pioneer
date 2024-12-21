@@ -21,7 +21,7 @@
 
 ## ❓ Why this fork?
 
-I've used versioneer for years and I like the format and dynamic resolving version for development. But,
+I have used versioneer for years, and I like the format and dynamic resolution of versions for development. However,
 
 1. It doesn't support any build backends other than `setuptools` (like `pdm`, `hatchling`, `poetry`, `maturin`, `scikit-build`, etc.)
 2. It doesn't support projects that are not Python (like Rust, Chrome Extension, etc.).
@@ -33,15 +33,98 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 **🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
 
 - **Highly customisable**: It's a easy-to-read script. Customise how you format or resolve the version string.
-- Runs with Python 3.7+, no dependencies.
+- Runs with Python 3.8+, no dependencies.
 - Works with any build backend with hooks.
 - Works with any language, not just Python.
 - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4`. Useful for multi-language projects, Chrome Extension, etc.
 
 
+## 🚦 Usage
+
+Now that we understand how it works
+
+1. Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project.
+2. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
+3. Configure `pyproject.toml`. `[tool.version-pioneer]` section is required.
+
+```toml
+[tool.version-pioneer]
+versionfile-source = "src/my_project/_version.py"
+versionfile-build = "my_project/_version.py"
+```
+
+4. Configure your build backend to execute `_version.py` and use the version string. For example, Hatchling and PDM are supported.
+
+🥚 Hatchling:
+
+```toml
+# append to pyproject.toml
+[build-system]
+requires = ["hatchling", "version-pioneer"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "code"
+path = "src/my_project/_version.py"
+expression = "__version__"  # default
+
+[tool.hatch.build.hooks.version-pioneer]
+# section is empty because we read config from `[tool.version-pioneer]` section.
+```
+
+PDM:
+
+```toml
+# append to pyproject.toml
+[build-system]
+requires = ["pdm-backend", "version-pioneer"]
+build-backend = "pdm.backend"
+```
+
+## 🛠️ Configuration
+
+Unlike Versioneer, the configuration is located in two places: `pyproject.toml` and `src/my_project/_version.py`. This is to make it less confusing, because in Versioneer, most of the pyproject.toml config is actually useless once you install `_version.py` in your project.
+
+### pyproject.toml [tool.version-pioneer]
+
+Configuration for build backends (and Version-Pioneer CLI if you want to use it). 
+
+- `versionfile-source`: Path to the `_version.py` file in your project. (e.g. `src/my_project/_version.py`)
+- `versionfile-build`: Path to the `_version.py` file in build directory. (e.g. `my_project/_version.py`)
+
+
+The idea is that it just tells you where it is, and the other configs should be parsed directly from `_version.py`.
+
+### `_version.py`
+
+Configuration for resolving the version string.
+
+This file has to be able to run like a script without any other dependencies (like package, files, config, etc.).
+
+```python
+@dataclass(frozen=True)
+class VersionPioneerConfig:
+    style: VersionStyle = VersionStyle.pep440
+    tag_prefix: str = "v"
+    parentdir_prefix: Optional[str] = None
+    verbose: bool = False
+```
+
+- `style`: similar to Versioneer's `style` option. Two major styles are:
+    - `VersionStyle.pep440`: "1.2.3+4.gxxxxxxx.dirty" (default)
+    - `VersionStyle.digits`: "1.2.3.5"
+        - Digits-only version string.
+        - The last number is the distance from the tag (dirty is counted as 1, thus 5 in this example).
+        - Useful for multi-language projects, Chrome Extension, etc.
+    - See Versioneer for more styles (or read documentation in _version.py).
+- `tag_prefix`: tag to look for in git for the reference version.
+- `parentdir_prefix`: if there is no .git, like it's a source tarball downloaded from GitHub Releases, find version from the name of the parent directory. e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
+- `verbose`: print debug messages.
+
+
 ## 💡 Understanding Version-Pioneer
 
-Before getting started, it's important to understand how Version-Pioneer works, so you can customise it to your needs. There is a `hatchling` plugin to make it easier to use in Python projects which will be described in the next section.
+I think it's important to understand how Version-Pioneer works, so you can customise it to your needs. There is a `hatchling` plugin to make it easier to use in Python projects which will be described in the next section.
 
 The core functionality is in one file.
 
@@ -265,6 +348,4 @@ def pdm_build_initialize(context: Context):
         # make it executable
         versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
 ```
-
-## 🚦 Usage
 

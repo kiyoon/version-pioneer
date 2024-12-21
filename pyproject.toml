@@ -37,9 +37,12 @@ requires-python = ">=3.8,<4"
 [project.scripts]
 version-pioneer = "version_pioneer.cli:main"  # CHANGE
 
-# Register hatch plugin
+# Register hatch, pdm plugin
 [project.entry-points.hatch]
 version-pioneer = "version_pioneer.backends.hatchling.hooks"
+
+[project.entry-points."pdm.build.hook"]
+version-pioneer = "version_pioneer.backends.pdm.hooks"
 
 [tool.hatch.metadata.hooks.requirements_txt]
 files = ["deps/requirements.in"]

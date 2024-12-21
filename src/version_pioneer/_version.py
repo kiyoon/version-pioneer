@@ -62,6 +62,11 @@ class VersionPioneerConfig:
     verbose: bool = False
 
 
+# ┌──────────────────────────────────────────┐
+# │     Modify the configuration above.      │
+# └──────────────────────────────────────────┘
+
+
 class VersionDict(TypedDict):
     """Type of __version_dict__."""
 
