@@ -717,7 +717,9 @@ def _versions_from_parentdir(
     raise NotThisMethodError("rootdir doesn't start with parentdir_prefix")
 
 
-def get_versions(cfg: "VersionPioneerConfig | None" = None) -> VersionDict:
+def get_versions(
+    cfg: "VersionPioneerConfig | None" = None, cwd: "str | PathLike | None" = None
+) -> VersionDict:
     """Get version information or return default if unable to do so."""
     if cfg is None:
         cfg = VersionPioneerConfig()
