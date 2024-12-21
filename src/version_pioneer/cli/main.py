@@ -28,7 +28,9 @@ from rich.syntax import Syntax
 from version_pioneer.api import ResolutionFormat
 
 app = typer.Typer(
-    no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]}
+    no_args_is_help=True,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help="🧗 Version-Pioneer: Dynamically manage project version with hatchling and pdm support.",
 )
 
 
@@ -110,7 +112,7 @@ def install(project_dir: Optional[Path] = None):
 
 
 @app.command()
-def print_version_py_code():
+def print_orig_version_py_code():
     """Print the content of _version.py file (for manual installation)."""
     from version_pioneer.api import get_version_py_code
 

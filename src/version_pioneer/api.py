@@ -4,6 +4,7 @@ import json
 import textwrap
 from enum import Enum
 from pathlib import Path
+from typing import Literal
 
 
 class ResolutionFormat(str, Enum):
@@ -51,7 +52,8 @@ def get_version_py_code():
 
 def exec_version_py(
     project_dir_or_version_py_file: Path | None = None,
-    output_format: ResolutionFormat = ResolutionFormat.python,
+    output_format: Literal["python", "json", "version-string"]
+    | ResolutionFormat = ResolutionFormat.python,
 ):
     """
     Resolve the _version.py file for build, and print the content.
