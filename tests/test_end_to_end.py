@@ -135,8 +135,18 @@ def test_build(new_hatchling_project: Path):
     assert dynamic_version == version_after_commit_resolved
 
     #############################################
-    # touch a file and see if .dirty is appended
-    (new_hatchling_project / "src" / "my_app" / "foo.py").touch()
+    # modify a file and see if .dirty is appended
+    # only unstaged changes count, and not a new file. So we remove what we added earlier.
+    rmtree(new_hatchling_project / "my_app-0.1.0")
+
+    ps = subprocess.run(
+        ["git", "status"],
+        cwd=new_hatchling_project,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    logger.info(ps.stdout)
 
     dynamic_version = _get_dynamic_version(new_hatchling_project)
     logger.info(
