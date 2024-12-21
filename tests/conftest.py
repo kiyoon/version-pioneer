@@ -1,10 +1,15 @@
+import os
 import shutil
+import subprocess
 import textwrap
 from pathlib import Path
 from shutil import copy2
 from tempfile import TemporaryDirectory
 
 import pytest
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+os.environ["GIT_CONFIG_GLOBAL"] = str(SCRIPT_DIR / "gitconfig")
 
 
 @pytest.fixture(name="plugin_dir", scope="session")
@@ -46,18 +51,19 @@ def _new_hatchling_project(plugin_dir: Path, tmp_path: Path, monkeypatch):
             requires = ["hatchling", "version-pioneer @ {plugin_dir.as_uri()}"]
             build-backend = "hatchling.build"
 
-            [project]
-            name = "my-app"
-            dynamic = ["version"]
-
-            [tool.version-pioneer]
-            version-py-path = "src/my_app/_version.py"
-
             [tool.hatch.version]
             source = "code"
             path = "src/my_app/_version.py"
 
             [tool.hatch.build.hooks.version-pioneer]
+
+            [tool.version-pioneer]
+            versionfile-source = "src/my_app/_version.py"
+            versionfile-build = "my_app/_version.py"
+
+            [project]
+            name = "my-app"
+            dynamic = ["version"]
         """),
         encoding="utf-8",
     )
@@ -72,5 +78,12 @@ def _new_hatchling_project(plugin_dir: Path, tmp_path: Path, monkeypatch):
     copy2(plugin_dir / "src" / "version_pioneer" / "_version.py", version_file)
 
     monkeypatch.chdir(project_dir)
+
+    assert Path.cwd() == project_dir
+
+    subprocess.run(["git", "init"], check=True)
+    subprocess.run(["git", "add", "."], check=True)
+    subprocess.run(["git", "commit", "-m", "Initial commit"], check=True)
+    subprocess.run(["git", "tag", "v0.1.0"], check=True)
 
     return project_dir

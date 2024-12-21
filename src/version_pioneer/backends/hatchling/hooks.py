@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import stat
 import tempfile
 import textwrap
 from pathlib import Path
@@ -22,16 +23,16 @@ class VersionPioneerBuildHook(BuildHookInterface):
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
         try:
-            version_py_path = Path(
-                pyproject_toml["tool"]["version-pioneer"]["version-py-path"]
+            versionfile_source = Path(self.root) / Path(
+                pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
             )
         except KeyError as e:
             raise ValueError(
-                "The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'version-py-path' key."
+                "The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-source' key."
             ) from e
 
         # evaluate the original _version.py file to get the computed version
-        version_py = version_py_path.read_text()
+        version_py = versionfile_source.read_text()
         module_globals = {}
         exec(version_py, module_globals)
 
@@ -50,11 +51,17 @@ class VersionPioneerBuildHook(BuildHookInterface):
                     import json
 
                     print(json.dumps(__version_dict__))
-            """)
+            """).strip()
         )
         self.temp_version_file.flush()
 
-        build_data["force_include"][self.temp_version_file.name] = str(version_py_path)
+        # make it executable
+        versionfile_build = Path(self.temp_version_file.name)
+        versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
+
+        build_data["force_include"][self.temp_version_file.name] = Path(
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-build"]
+        )
 
     def finalize(
         self,
