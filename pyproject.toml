@@ -53,10 +53,10 @@ version-pioneer = "version_pioneer.cli:main"
 
 # Register hatch, pdm plugin
 [project.entry-points.hatch]
-version-pioneer = "version_pioneer.backends.hatchling.hooks"
+version-pioneer = "version_pioneer.build.hatchling.hooks"
 
 [project.entry-points."pdm.build.hook"]
-version-pioneer = "version_pioneer.backends.pdm.hooks"
+version-pioneer = "version_pioneer.build.pdm.hooks"
 
 [tool.projector.pip_compile]
 # https://github.com/deargen/workflows/blob/master/python-projector
