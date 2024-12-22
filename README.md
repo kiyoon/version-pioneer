@@ -28,7 +28,7 @@ I have used versioneer for years, and I like the format and dynamic resolution o
 
 Every time I had to figure out how to integrate a new VCS versioning plugin but they all work differently and produce different version strings. GitHub Actions and other tools may not work with all different version format. Different language usually expects different format, and it's especially hard to make it compatible for mixed language projects.
 
-The original versioneer is 99% boilerplate code to make it work with all legacy setuptools configurations. But the core functionality is simple: just get version from git tag and format it. I had to leverage this logic to integrate Versioneer in every project I had.
+The original versioneer is 99% boilerplate code to make it work with all legacy setuptools configurations, trying to "generate" code depending on the configuration, etc.. But the core functionality is simple: just get version from git tag and format it. I had to leverage this logic to integrate Versioneer in every project I had.
 
 **🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
 
