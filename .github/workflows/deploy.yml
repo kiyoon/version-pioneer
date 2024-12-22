@@ -1,0 +1,39 @@
+name: Commit CHANGELOG.md, create a Release and deploy MkDocs
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-tag:
+        description: Version tag
+        required: true
+        default: v0.1.0
+      dry-run:
+        description: Dry run
+        type: boolean
+        default: false
+      exclude-types:
+        description: Commit types to exclude from the changelog
+        required: false
+        default: build,docs,style,other
+
+jobs:
+  commit-changelog-and-release:
+    uses: deargen/workflows/.github/workflows/commit-changelog-and-release.yml@master
+    with:
+      version-tag: ${{ github.event.inputs.version-tag }}
+      dry-run: ${{ github.event.inputs.dry-run == 'true' }}
+      changelog-path: docs/CHANGELOG.md
+      exclude-types: ${{ github.event.inputs.exclude-types }}
+
+  deploy-mkdocs:
+    if: ${{ github.event.inputs.dry-run == 'false' }}
+    needs: commit-changelog-and-release
+    uses: deargen/workflows/.github/workflows/deploy-mkdocs.yml@master
+    with:
+      requirements-file: deps/lock/x86_64-manylinux_2_28/requirements_docs.txt
+      gitlab-project: ${{ vars.GITLAB_PROJECT }}
+      gitlab-branch: master
+      version-tag: ${{ github.event.inputs.version-tag }}
+      deploy-type: tag
+    secrets:
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}

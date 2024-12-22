@@ -102,7 +102,6 @@ def test_no_versionfile_build(new_hatchling_project: Path, plugin_dir: Path):
 
     pyp = new_hatchling_project / "pyproject.toml"
 
-    # If we leave out the config for good, the plugin doesn't get activated.
     pyp.write_text(
         textwrap.dedent(f"""
             [build-system]
@@ -122,6 +121,7 @@ def test_no_versionfile_build(new_hatchling_project: Path, plugin_dir: Path):
             [project]
             name = "my-app"
             dynamic = ["version"]
+            requires-python = ">=3.8"
         """),
     )
 
@@ -132,7 +132,7 @@ def test_no_versionfile_build(new_hatchling_project: Path, plugin_dir: Path):
     build_project(check=False)
 
     # logger.info(list((new_hatchling_project / "dist").glob("*")))
-    whl = new_hatchling_project / "dist" / "my_app-0.1.1-py2.py3-none-any.whl"
+    whl = new_hatchling_project / "dist" / "my_app-0.1.1-py3-none-any.whl"
 
     assert whl.exists()
 

@@ -1,0 +1,20 @@
+name: Check pip compile sync
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  check-pip-compile:
+    name: Check pip compile
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: deargen/workflows/actions/check-pip-compile@master

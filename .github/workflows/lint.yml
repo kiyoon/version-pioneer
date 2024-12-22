@@ -1,0 +1,19 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  ruff-lint:
+    uses: deargen/workflows/.github/workflows/check-ruff.yml@master
+    with:
+      check-type: lint
+      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt

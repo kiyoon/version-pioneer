@@ -1,5 +1,19 @@
 # 🧗🏽 Version-Pioneer: General-Purpose Versioneer for Any Build Backends
 
+![build](https://github.com/kiyoon/version-pioneer/actions/workflows/deploy.yml/badge.svg)
+
+[![image](https://img.shields.io/pypi/v/biotest.svg)](https://pypi.python.org/pypi/biotest)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/biotest)](https://pypistats.org/packages/biotest)
+[![image](https://img.shields.io/pypi/l/biotest.svg)](https://pypi.python.org/pypi/biotest)
+[![image](https://img.shields.io/pypi/pyversions/biotest.svg)](https://pypi.python.org/pypi/biotest)
+
+|  |  |
+|--|--|
+|[![Ruff](https://img.shields.io/badge/Ruff-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/astral-sh/ruff) |[![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Style%20checking/badge.svg)](https://github.com/kiyoon/version-pioneer/actions)|
+| [![Ruff](https://img.shields.io/badge/Ruff-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/astral-sh/ruff) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Linting/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) |
+| [![pytest](https://img.shields.io/badge/pytest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/pytest-dev/pytest) [![doctest](https://img.shields.io/badge/doctest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://docs.python.org/3/library/doctest.html) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Tests/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) |
+| [![uv](https://img.shields.io/badge/uv-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/astral-sh/uv) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Check%20pip%20compile%20sync/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) |
+
 ## Background
 
 [Versioneer](https://github.com/python-versioneer/python-versioneer) finds the closest git tag like `v1.2.3` and generates a version string like `1.2.3+4.gxxxxxxx.dirty`.
