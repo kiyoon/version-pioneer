@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 
 import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Optional
 
 import rich
 from rich.prompt import Confirm
@@ -28,6 +28,11 @@ from rich.syntax import Syntax
 from version_pioneer import VersionStyle
 from version_pioneer.api import ResolutionFormat
 from version_pioneer.utils.diff import unidiff_output
+
+if sys.version_info < (3, 9):
+    from typing_extensions import Annotated
+else:
+    from typing import Annotated
 
 app = typer.Typer(
     no_args_is_help=True,

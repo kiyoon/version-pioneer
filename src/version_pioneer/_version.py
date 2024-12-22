@@ -9,7 +9,6 @@ Refactored from Versioneer's _version.py (for git).
 
 Note:
     - Should be compatible with python 3.8+ without any dependencies.
-        - Even though the version-pioneer package requires 3.9+, this file is simple so it should work with 3.8+.
     - This file is usually located at `src/my_package/_version.py`.
     - `src/my_package/__init__.py` should import `__version__` from this file.
     - It should also be able to be run as a script to print the version info in json format.

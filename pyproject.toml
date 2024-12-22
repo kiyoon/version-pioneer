@@ -29,12 +29,13 @@ authors = [
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9,<4"
+requires-python = ">=3.8,<4"
 # classifiers = [
 #   "Programming Language :: Python :: Implementation :: CPython",
 #   "Programming Language :: Python :: Implementation :: PyPy",
 #   "Programming Language :: Python",
 #   "Programming Language :: Python :: 3",
+#   "Programming Language :: Python :: 3.8",
 #   "Programming Language :: Python :: 3.9",
 #   "Programming Language :: Python :: 3.10",
 #   "Programming Language :: Python :: 3.11",
@@ -83,7 +84,7 @@ typeCheckingMode = "standard"
 useLibraryCodeForTypes = true
 autoImportCompletions = true
 
-pythonVersion = "3.9"
+pythonVersion = "3.8"
 # pythonPlatform = "Linux"
 
 reportDuplicateImport = true
