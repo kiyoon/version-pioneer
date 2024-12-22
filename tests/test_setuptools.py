@@ -5,13 +5,15 @@ from pathlib import Path
 
 import pytest
 
-from tests.utils import (
-    VersionPyResolutionError,
+from tests.build_pipelines import (
     assert_build_and_version_persistence,
     assert_build_consistency,
 )
+from tests.utils import (
+    VersionPyResolutionError,
+)
 
-from .build_helpers import check_no_versionfile_build
+from .build_pipelines import check_no_versionfile_build
 from .utils import build_project
 
 logger = logging.getLogger(__name__)
