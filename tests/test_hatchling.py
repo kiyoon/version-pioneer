@@ -5,7 +5,10 @@ import textwrap
 from pathlib import Path
 from shutil import rmtree
 
-import pytest
+from version_pioneer.utils.exec_version_py import (
+    exec_version_py_code_to_get_version_dict,
+    exec_version_py_to_get_version,
+)
 
 from .utils import build_project, run
 
@@ -31,19 +34,9 @@ def _verify_resolved_version_py(resolved_version_py_code: str):
     )
 
 
-def _get_version_from_code(version_module_code: str) -> str:
-    version_module_globals = {}
-    exec(version_module_code, version_module_globals)
-    return version_module_globals["__version__"]
-
-
 def _get_dynamic_version(new_hatchling_project: Path) -> str:
-    version_module_globals = {}
-    version_module_code = (
-        new_hatchling_project / "src" / "my_app" / "_version.py"
-    ).read_text()
-    exec(version_module_code, version_module_globals)
-    return version_module_globals["__version__"]
+    version_module_code = new_hatchling_project / "src" / "my_app" / "_version.py"
+    return exec_version_py_to_get_version(version_module_code)
 
 
 def test_build(new_hatchling_project: Path):
@@ -75,7 +68,10 @@ def test_build(new_hatchling_project: Path):
     _verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
-    version_after_tag: str = _get_version_from_code(resolved_version_py)
+    logger.info(f"Resolved _version.py code: {resolved_version_py}")
+    version_after_tag: str = exec_version_py_code_to_get_version_dict(
+        resolved_version_py
+    )["version"]
     logger.info(f"Version after tag: {version_after_tag}")
 
     assert version_after_tag == "0.1.0"
@@ -123,7 +119,9 @@ def test_build(new_hatchling_project: Path):
     _verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
-    version_after_commit_resolved = _get_version_from_code(resolved_version_py)
+    version_after_commit_resolved = exec_version_py_code_to_get_version_dict(
+        resolved_version_py
+    )["version"]
     logger.info(f"Version after commit (resolved): {version_after_commit_resolved}")
 
     assert dynamic_version == version_after_commit_resolved
@@ -170,7 +168,9 @@ def test_build(new_hatchling_project: Path):
     _verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
-    version_after_commit_resolved = _get_version_from_code(resolved_version_py)
+    version_after_commit_resolved = exec_version_py_code_to_get_version_dict(
+        resolved_version_py
+    )["version"]
     logger.info(
         f"Version after commit and unstaged changes (resolved): {version_after_commit_resolved}"
     )

@@ -59,13 +59,18 @@ def find_version_py_from_project_dir(
     return version_py_file
 
 
+def exec_version_py_code_to_get_version_dict(version_py_code: str) -> VersionDict:
+    """Execute _version.py code to get __version_dict__."""
+    module_globals = {}
+    exec(version_py_code, module_globals)
+    return module_globals["__version_dict__"]
+
+
 def exec_version_py_to_get_version_dict(version_py_path: str | PathLike) -> VersionDict:
     """Execute _version.py to get __version_dict__."""
     version_py_path = Path(version_py_path)
     code = version_py_path.read_text()
-    module_globals = {}
-    exec(code, module_globals)
-    return module_globals["__version_dict__"]
+    return exec_version_py_code_to_get_version_dict(code)
 
 
 def exec_version_py_to_get_version(version_py_path: str | PathLike) -> str:
@@ -82,7 +87,7 @@ def version_dict_to_str(
     if output_format == ResolutionFormat.python:
         return template.EXEC_OUTPUT_PYTHON.format(
             version_pioneer_version=__version__,
-            version_dict=json.dumps(version_dict),
+            version_dict=version_dict,
         )
     elif output_format == ResolutionFormat.json:
         return json.dumps(version_dict)
