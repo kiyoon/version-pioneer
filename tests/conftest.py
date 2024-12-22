@@ -67,6 +67,7 @@ def _new_hatchling_project(plugin_dir: Path, tmp_path: Path, monkeypatch):
             [project]
             name = "my-app"
             dynamic = ["version"]
+            requires-python = ">=3.8"
         """),
         encoding="utf-8",
     )
@@ -114,12 +115,17 @@ def _new_setuptools_project(plugin_dir: Path, tmp_path: Path, monkeypatch):
             [project]
             name = "my-app"
             dynamic = ["version"]
+            requires-python = ">=3.8"
         """),
         encoding="utf-8",
     )
 
     setup_file = project_dir / "setup.py"
     setup_file.write_text(SETUP_PY)
+
+    # NOTE: without gitignore, build will create artifacts which makes the version always dirty
+    gitignore_file = project_dir / ".gitignore"
+    gitignore_file.write_text("*.egg-info/")
 
     package_dir = project_dir / "src" / "my_app"
     package_dir.mkdir(parents=True)
