@@ -19,3 +19,14 @@ EXEC_OUTPUT_PYTHON = textwrap.dedent(
         print(json.dumps(__version_dict__))
     """
 ).strip()
+
+
+SETUP_PY = textwrap.dedent("""
+    from setuptools import setup
+    from version_pioneer.build.setuptools import get_version, get_cmdclass
+
+    setup(
+        version=get_version(),
+        cmdclass=get_cmdclass(),
+    )
+""")

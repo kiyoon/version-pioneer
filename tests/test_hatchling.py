@@ -1,42 +1,25 @@
 import logging
-import re
 import subprocess
 import textwrap
 from pathlib import Path
 from shutil import rmtree
 
+import pytest
+
+from version_pioneer import get_version_py_path
 from version_pioneer.utils.exec_version_py import (
     exec_version_py_code_to_get_version_dict,
-    exec_version_py_to_get_version,
 )
 
-from .utils import build_project, run
+from .utils import (
+    VersionPyResolutionError,
+    build_project,
+    get_dynamic_version,
+    run,
+    verify_resolved_version_py,
+)
 
 logger = logging.getLogger(__name__)
-
-
-def _verify_resolved_version_py(resolved_version_py_code: str):
-    # does it have `__version_dict__ = { ... }`?
-    assert (
-        re.search(
-            r"^__version_dict__ = \{.*\}$", resolved_version_py_code, re.MULTILINE
-        )
-        is not None
-    )
-    # and `__version__ = __version_dict__[...]`?
-    assert (
-        re.search(
-            r"^__version__ = __version_dict__\[.*\]$",
-            resolved_version_py_code,
-            re.MULTILINE,
-        )
-        is not None
-    )
-
-
-def _get_dynamic_version(new_hatchling_project: Path) -> str:
-    version_module_code = new_hatchling_project / "src" / "my_app" / "_version.py"
-    return exec_version_py_to_get_version(version_module_code)
 
 
 def test_build(new_hatchling_project: Path):
@@ -52,7 +35,7 @@ def test_build(new_hatchling_project: Path):
     # """,
     #     )
 
-    dynamic_version = _get_dynamic_version(new_hatchling_project)
+    dynamic_version = get_dynamic_version(new_hatchling_project)
 
     build_project()
 
@@ -65,7 +48,7 @@ def test_build(new_hatchling_project: Path):
     resolved_version_py = (
         new_hatchling_project / "my_app-0.1.0" / "my_app" / "_version.py"
     ).read_text()
-    _verify_resolved_version_py(resolved_version_py)
+    verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
     logger.info(f"Resolved _version.py code: {resolved_version_py}")
@@ -94,7 +77,7 @@ def test_build(new_hatchling_project: Path):
     # )
     # logger.info(ps.stdout)
 
-    dynamic_version = _get_dynamic_version(new_hatchling_project)
+    dynamic_version = get_dynamic_version(new_hatchling_project)
     logger.info(f"Version after one commit (dynamic): {dynamic_version}")
 
     assert dynamic_version != "0.1.0"
@@ -116,7 +99,7 @@ def test_build(new_hatchling_project: Path):
     resolved_version_py = (
         new_hatchling_project / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
     ).read_text()
-    _verify_resolved_version_py(resolved_version_py)
+    verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
     version_after_commit_resolved = exec_version_py_code_to_get_version_dict(
@@ -140,7 +123,7 @@ def test_build(new_hatchling_project: Path):
     )
     logger.info(ps.stdout)
 
-    dynamic_version = _get_dynamic_version(new_hatchling_project)
+    dynamic_version = get_dynamic_version(new_hatchling_project)
     logger.info(
         f"Version after one commit and unstaged changes (dynamic): {dynamic_version}"
     )
@@ -165,7 +148,7 @@ def test_build(new_hatchling_project: Path):
     resolved_version_py = (
         new_hatchling_project / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
     ).read_text()
-    _verify_resolved_version_py(resolved_version_py)
+    verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
     version_after_commit_resolved = exec_version_py_code_to_get_version_dict(
@@ -182,6 +165,10 @@ def test_invalid_config(new_hatchling_project: Path, plugin_dir: Path):
     """
     Missing config makes the build fail with a meaningful error message.
     """
+    # Reset the project to a known state.
+    subprocess.run(["git", "stash", "--all"], cwd=new_hatchling_project, check=True)
+    subprocess.run(["git", "checkout", "v0.1.0"], cwd=new_hatchling_project, check=True)
+
     pyp = new_hatchling_project / "pyproject.toml"
 
     # If we leave out the config for good, the plugin doesn't get activated.
@@ -209,9 +196,7 @@ def test_invalid_config(new_hatchling_project: Path, plugin_dir: Path):
     out = build_project(check=False)
 
     assert (
-        "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-source' key."
-        in out
-        or "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-build' key."
+        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
         in out
     ), out
 
@@ -228,8 +213,8 @@ def test_invalid_config(new_hatchling_project: Path, plugin_dir: Path):
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            versionfile-source = "src/my_app/_version.py"
-            # MISSING CONFIGURATION
+            # versionfile-source = "src/my_app/_version.py"
+            versionfile-build = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -240,6 +225,60 @@ def test_invalid_config(new_hatchling_project: Path, plugin_dir: Path):
     out = build_project(check=False)
 
     assert (
-        "ValueError: The 'tool.version-pioneer' section in 'pyproject.toml' must have a 'versionfile-build' key."
+        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
         in out
     ), out
+
+
+@pytest.mark.xfail(raises=VersionPyResolutionError)
+def test_no_versionfile_build(new_hatchling_project: Path, plugin_dir: Path):
+    """
+    If versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    """
+    # Reset the project to a known state.
+    subprocess.run(["git", "stash", "--all"], cwd=new_hatchling_project, check=True)
+    subprocess.run(["git", "checkout", "v0.1.0"], cwd=new_hatchling_project, check=True)
+
+    pyp = new_hatchling_project / "pyproject.toml"
+
+    # If we leave out the config for good, the plugin doesn't get activated.
+    pyp.write_text(
+        textwrap.dedent(f"""
+            [build-system]
+            requires = ["hatchling", "version-pioneer @ {plugin_dir.as_uri()}"]
+            build-backend = "hatchling.build"
+
+            [tool.hatch.version]
+            source = "code"
+            path = "src/my_app/_version.py"
+
+            [tool.hatch.build.hooks.version-pioneer]
+
+            [tool.version-pioneer]
+            versionfile-source = "src/my_app/_version.py"
+            # versionfile-build = "my_app/_version.py"
+
+            [project]
+            name = "my-app"
+            dynamic = ["version"]
+        """),
+    )
+
+    subprocess.run(["git", "add", "."], check=True)
+    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
+    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+
+    build_project(check=False)
+
+    # logger.info(list((new_hatchling_project / "dist").glob("*")))
+    whl = new_hatchling_project / "dist" / "my_app-0.1.1-py2.py3-none-any.whl"
+
+    assert whl.exists()
+
+    run("wheel", "unpack", whl)
+
+    resolved_version_py = (
+        new_hatchling_project / "my_app-0.1.1" / "my_app" / "_version.py"
+    ).read_text()
+    assert resolved_version_py == get_version_py_path().read_text()
+    verify_resolved_version_py(resolved_version_py)  # expected to fail
