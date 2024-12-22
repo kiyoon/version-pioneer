@@ -12,10 +12,6 @@ else:
     import tomli as tomllib
 
 
-class InvalidConfigError(Exception):
-    pass
-
-
 def load_toml(file: str | PathLike) -> dict[str, Any]:
     with open(file, "rb") as f:
         return tomllib.load(f)
@@ -31,7 +27,7 @@ def get_toml_value(
     for k in keys:
         if k not in value:
             key = ".".join(keys)
-            raise InvalidConfigError(f"Missing key {key} in {toml_path_for_error}")
+            raise KeyError(f"Missing key {key} in {toml_path_for_error}")
         value = value[k]
     return value
 

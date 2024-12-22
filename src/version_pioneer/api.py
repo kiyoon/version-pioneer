@@ -69,7 +69,7 @@ def _version_dict_to_str(
 def exec_version_py(
     project_dir_or_version_py_file: Path | None = None,
     *,
-    output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.python,
+    output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.version_string,
 ):
     """
     Resolve the _version.py file for build, and print the content.
@@ -97,37 +97,17 @@ def exec_version_py(
     """
     from version_pioneer.utils.exec_version_py import (
         exec_version_py_to_get_version_dict,
-    )
-    from version_pioneer.utils.toml import (
-        find_pyproject_toml,
-        get_toml_value,
-        load_toml,
+        find_version_py_from_project_dir,
     )
 
     if project_dir_or_version_py_file is None:
-        project_dir_or_version_py_file = Path.cwd()
-
-    if project_dir_or_version_py_file.is_file():
+        version_py_file = find_version_py_from_project_dir(Path.cwd())
+    elif project_dir_or_version_py_file.is_file():
         version_py_file = project_dir_or_version_py_file
     else:
-        pyproject_toml_file = find_pyproject_toml(project_dir_or_version_py_file)
-        pyproject_toml = load_toml(pyproject_toml_file)
-        version_py_file = Path(
-            get_toml_value(
-                pyproject_toml, ["tool", "version-pioneer", "versionfile-source"]
-            )
+        version_py_file = find_version_py_from_project_dir(
+            project_dir_or_version_py_file
         )
-        if not version_py_file.exists():
-            version_py_file2 = Path(
-                get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionfile-build"]
-                )
-            )
-            if not version_py_file2.exists():
-                raise FileNotFoundError(
-                    f"Version file not found: {version_py_file} or {version_py_file2}"
-                )
-            version_py_file = version_py_file2
 
     version_dict = exec_version_py_to_get_version_dict(version_py_file)
     return _version_dict_to_str(version_dict, output_format)
