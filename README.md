@@ -33,7 +33,8 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 **🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
 
 - **Highly customisable**: It's a easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
-- Runs with Python 3.8+
+- Runs with Python 3.9+
+    - (Python 3.8 works if you just use the _version.py script, not with the package / CLI).
 - No dependencies like package, config file etc. It runs with one python file. 
 - Works with any build backend with hooks.
 - Works with any language, not just Python.
@@ -43,9 +44,7 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 
 For `setuptools`, `hatchling` and `pdm-backend`, you can configure using the provided plugins. Below section describe how they work, so you can customise the behaviour by making your own hook as well, if you wish!
 
-1. Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project.
-2. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
-3. Configure `pyproject.toml`. `[tool.version-pioneer]` section is required.
+1. Configure `pyproject.toml`. `[tool.version-pioneer]` section is required.
 
 ```toml
 [tool.version-pioneer]
@@ -53,6 +52,12 @@ versionfile-source = "src/my_project/_version.py"
 versionfile-build = "my_project/_version.py"
 ```
 
+2. Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project.
+    - You can use the CLI to install. Read [#version-pioneer-cli](#-version-pioneer-cli) section.  
+    ```bash
+    version-pioneer install
+    ```
+3. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
 4. Configure your build backend to execute `_version.py` and use the version string. For example, Hatchling and PDM are supported.
 
 🥚 Hatchling:
@@ -194,7 +199,7 @@ if __name__ == "__main__":
     print(json.dumps(__version_dict__))
 ```
 
-### Advanced: Configuring a Hatchling Hook
+### Advanced: Configuring a 🥚 Hatchling Hook
 
 Even if you are not familiar with Hatchling, hear me out. It is very straightforward.
 
@@ -389,7 +394,38 @@ pip install 'version-pioneer[cli]'
 uv tool install 'version-pioneer[cli]'
 ```
 
+
+### `version-pioneer install`: Install _version.py to your project
+
+1. Configure `pyproject.toml` with `[tool.version-pioneer]` section.
+
+```toml
+[tool.version-pioneer]
+versionfile-source = "src/my_project/_version.py"
+versionfile-build = "my_project/_version.py"
+```
+
+2. `version-pioneer install` will copy-paste the `_version.py` to the path you specified.
+
+
 ### `version-pioneer exec-version-py`: Resolve _version.py and get the version
+
+```console
+$ version-pioneer
+
+ Usage: version-pioneer [OPTIONS] COMMAND [ARGS]...
+
+ 🧗 Version-Pioneer: Dynamically manage project version with hatchling and pdm support.
+
+╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ install                 Install _version.py at `tool.version-pioneer.versionfile-source` in pyproject.toml.   │
+│ print-version-py-code   Print the content of _version.py file (for manual installation).                      │
+│ exec-version-py         Resolve the _version.py file for build, and print the content.                        │
+│ get-version-builtin     WITHOUT using the _version.py file, get version with Version-Pioneer logic.           │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+Examples:
 
 ```console
 $ version-pioneer exec-version-py --output-format version-string
@@ -412,9 +448,23 @@ if __name__ == "__main__":
     print(json.dumps(__version_dict__))
 ```
 
+### `version-pioneer get-version-builtin`: Get version without using _version.py
+
+This is useful when you want to get the version string without using the `_version.py` file, like your project is probably not Python.
+
+```console
+$ version-pioneer get-version-builtin
+0.1.0+8.g6228bc4.dirty
+
+$ version-pioneer get-version-builtin --output-format json
+{"version": "0.1.0+8.g6228bc4.dirty", "full_revisionid": "6228bc46e14cfc4e238e652e56ccbf3f2cb1e91f", "dirty": true, "error": null, "date": "2024-12-21T21:03:48+0900"}
+
+$ version-pioneer get-version-builtin --style digits
+0.1.0.9
+```
+
+
 ## 📚 Note
 
 - Only supports git.
 - `git archive` is not supported. Original Versioneer uses `.gitattributes` to tell git to replace some strings in `_version.py` when archiving. But this is not enough information (at least in my case) and the version string always becomes `0+unknown`. So I dropped it.
-
-

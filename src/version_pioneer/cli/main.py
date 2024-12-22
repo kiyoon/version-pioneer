@@ -19,13 +19,15 @@ except ModuleNotFoundError:
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Annotated, Optional
 
 import rich
 from rich.prompt import Confirm
 from rich.syntax import Syntax
 
+from version_pioneer import VersionStyle
 from version_pioneer.api import ResolutionFormat
+from version_pioneer.utils.diff import unidiff_output
 
 app = typer.Typer(
     no_args_is_help=True,
@@ -53,22 +55,8 @@ def common(
     pass
 
 
-def _unidiff_output(expected: str, actual: str):
-    """
-    Helper function. Returns a string containing the unified diff of two multiline strings.
-    """
-    import difflib
-
-    expected_list = expected.splitlines(keepends=True)
-    actual_list = actual.splitlines(keepends=True)
-
-    diff = difflib.unified_diff(expected_list, actual_list)
-
-    return "".join(diff)
-
-
 @app.command()
-def install(project_dir: Optional[Path] = None):
+def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
     """Install _version.py at `tool.version-pioneer.versionfile-source` in pyproject.toml."""
     from version_pioneer.api import get_version_py_code
     from version_pioneer.utils.toml import (
@@ -95,7 +83,7 @@ def install(project_dir: Optional[Path] = None):
             )
             sys.exit(2)
 
-        unified_diff = _unidiff_output(current_version_py_code, package_version_py_code)
+        unified_diff = unidiff_output(current_version_py_code, package_version_py_code)
         rich.print(Syntax(unified_diff, "diff", line_numbers=True, theme="lightbulb"))
         print()
 
@@ -121,13 +109,47 @@ def print_orig_version_py_code():
 
 @app.command()
 def exec_version_py(
-    project_dir_or_version_py_file: Optional[Path] = None,
-    output_format: ResolutionFormat = ResolutionFormat.python,
+    project_dir_or_version_py_file: Annotated[Optional[Path], typer.Argument()] = None,
+    output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """Resolve the _version.py file for build, and print the content."""
     from version_pioneer.api import exec_version_py
 
-    print(exec_version_py(project_dir_or_version_py_file, output_format))
+    print(exec_version_py(project_dir_or_version_py_file, output_format=output_format))
+
+
+@app.command()
+def get_version_builtin(
+    project_dir: Annotated[
+        Optional[Path], typer.Argument(help="Git directory. Default is cwd")
+    ] = None,
+    *,
+    style: VersionStyle = VersionStyle.pep440,
+    tag_prefix: str = "v",
+    parentdir_prefix: Optional[str] = None,
+    output_format: ResolutionFormat = ResolutionFormat.version_string,
+):
+    """
+    WITHOUT using the _version.py file, get version with Version-Pioneer logic.
+
+    Useful when you don't need to customise the _version.py file, and you work in non-Python projects
+    so you don't care about re-evaluating the version file.
+
+    Args:
+        project_dir: The root or child directory of the project.
+        parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
+    """
+    from version_pioneer.api import get_version_builtin
+
+    print(
+        get_version_builtin(
+            project_dir,
+            style=style,
+            tag_prefix=tag_prefix,
+            parentdir_prefix=parentdir_prefix,
+            output_format=output_format,
+        )
+    )
 
 
 def main():
