@@ -63,3 +63,9 @@ jobs:
           uv pip install -e .
       - name: Run doctest
         uses: deargen/workflows/actions/run-doctest@master
+
+  lint-essential:
+    uses: deargen/workflows/.github/workflows/check-ruff.yml@master
+    with:
+      check-type: lint-essential
+      # ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt
