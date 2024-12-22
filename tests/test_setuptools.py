@@ -11,7 +11,7 @@ from tests.utils import (
     run,
     verify_resolved_version_py,
 )
-from version_pioneer import get_version_py_path
+from version_pioneer.api import get_version_py_code
 
 from .utils import build_project
 
@@ -128,5 +128,5 @@ def test_no_versionfile_build(new_setuptools_project: Path, plugin_dir: Path):
     resolved_version_py = (
         new_setuptools_project / "my_app-0.1.1" / "my_app" / "_version.py"
     ).read_text()
-    assert resolved_version_py == get_version_py_path().read_text()
+    assert resolved_version_py == get_version_py_code()
     verify_resolved_version_py(resolved_version_py)  # expected to fail
