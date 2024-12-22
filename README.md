@@ -2,10 +2,10 @@
 
 ![build](https://github.com/kiyoon/version-pioneer/actions/workflows/deploy.yml/badge.svg)
 
-[![image](https://img.shields.io/pypi/v/biotest.svg)](https://pypi.python.org/pypi/biotest)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/biotest)](https://pypistats.org/packages/biotest)
-[![image](https://img.shields.io/pypi/l/biotest.svg)](https://pypi.python.org/pypi/biotest)
-[![image](https://img.shields.io/pypi/pyversions/biotest.svg)](https://pypi.python.org/pypi/biotest)
+[![image](https://img.shields.io/pypi/v/version-pioneer.svg)](https://pypi.python.org/pypi/version-pioneer)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/version-pioneer)](https://pypistats.org/packages/version-pioneer)
+[![image](https://img.shields.io/pypi/l/version-pioneer.svg)](https://pypi.python.org/pypi/version-pioneer)
+[![image](https://img.shields.io/pypi/pyversions/version-pioneer.svg)](https://pypi.python.org/pypi/version-pioneer)
 
 |  |  |
 |--|--|
