@@ -128,8 +128,20 @@ Unlike Versioneer, the configuration is located in two places: `pyproject.toml` 
 
 Configuration for build backends (and Version-Pioneer CLI if you want to use it). 
 
-- `versionfile-source`: Path to the `_version.py` file in your project. (e.g. `src/my_project/_version.py`)
-- `versionfile-build`: Path to the `_version.py` file in build directory. (e.g. `my_project/_version.py`)
+- `versionfile-source`: Path to the `_version.py` file in your project, and "sdist" build directory (e.g. `src/my_project/_version.py`)
+- `versionfile-build`: Path to the `_version.py` file in "wheel" build directory (e.g. `my_project/_version.py`)
+
+When you build a source distribution (sdist), the `versionfile-source` gets replaced to a short constant file.
+When you build a wheel, the `versionfile-build` gets replaced to a short constant file.
+
+> [!NOTE]
+> In hatchling backend, `versionfile-build` must be set to the same as `versionfile-source`.
+> Their build system is apparently more consistent between the two types.
+
+> [!TIP]
+> Leave out the `versionfile-build` setting if you don't want to replace the `_version.py` file in the build directory.
+> This applies not only to "wheel" builds but also to "sdist" builds to maintain consistent build results,
+> even though "sdist" builds do not actually use the `versionfile-build` setting (they replace the `versionfile-source` file).
 
 
 The idea is that it just tells you where it is, and the other configs should be parsed directly from `_version.py`.
