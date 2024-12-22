@@ -1,18 +1,29 @@
 from __future__ import annotations
 
+import json
+from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Literal, TypeVar
 
-if TYPE_CHECKING:
-    # NOTE: importing from version_pioneer._version is dangerous because it gets replaced to a constant during build.
-    # So, we import from version_pioneer._version only in TYPE_CHECKING mode.
-    from version_pioneer._version import VersionDict
-
+from version_pioneer import VersionDict, template
 from version_pioneer.utils.toml import (
     find_pyproject_toml,
     get_toml_value,
     load_toml,
+)
+
+
+class ResolutionFormat(str, Enum):
+    python = "python"
+    json = "json"
+    version_string = "version-string"
+
+
+RESOLUTION_FORMAT_TYPE = TypeVar(
+    "RESOLUTION_FORMAT_TYPE",
+    Literal["python", "json", "version-string"],
+    ResolutionFormat,
 )
 
 
@@ -60,3 +71,22 @@ def exec_version_py_to_get_version_dict(version_py_path: str | PathLike) -> Vers
 def exec_version_py_to_get_version(version_py_path: str | PathLike) -> str:
     """Execute _version.py to get __version__."""
     return exec_version_py_to_get_version_dict(version_py_path)["version"]
+
+
+def version_dict_to_str(
+    version_dict: VersionDict,
+    output_format: RESOLUTION_FORMAT_TYPE,
+) -> str:
+    from version_pioneer import __version__
+
+    if output_format == ResolutionFormat.python:
+        return template.EXEC_OUTPUT_PYTHON.format(
+            version_pioneer_version=__version__,
+            version_dict=json.dumps(version_dict),
+        )
+    elif output_format == ResolutionFormat.json:
+        return json.dumps(version_dict)
+    elif output_format == ResolutionFormat.version_string:
+        return version_dict["version"]
+    else:
+        raise ValueError(f"Invalid output format: {output_format}")

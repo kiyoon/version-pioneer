@@ -26,8 +26,8 @@ from rich.prompt import Confirm
 from rich.syntax import Syntax
 
 from version_pioneer import VersionStyle
-from version_pioneer.api import ResolutionFormat
 from version_pioneer.utils.diff import unidiff_output
+from version_pioneer.utils.exec_version_py import ResolutionFormat
 
 if sys.version_info < (3, 9):
     from typing_extensions import Annotated

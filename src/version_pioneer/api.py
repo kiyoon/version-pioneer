@@ -1,30 +1,17 @@
 from __future__ import annotations
 
-import json
 import textwrap
-from enum import Enum
 from pathlib import Path
-from typing import Literal, TypeVar
 
 from version_pioneer import (
-    VersionDict,
     VersionPioneerConfig,
     VersionStyle,
     get_version_dict,
-    template,
 )
-
-
-class ResolutionFormat(str, Enum):
-    python = "python"
-    json = "json"
-    version_string = "version-string"
-
-
-RESOLUTION_FORMAT_TYPE = TypeVar(
-    "RESOLUTION_FORMAT_TYPE",
-    Literal["python", "json", "version-string"],
+from version_pioneer.utils.exec_version_py import (
+    RESOLUTION_FORMAT_TYPE,
     ResolutionFormat,
+    version_dict_to_str,
 )
 
 
@@ -45,25 +32,6 @@ def get_version_py_code():
     )
 
     return version_py_code
-
-
-def _version_dict_to_str(
-    version_dict: VersionDict,
-    output_format: RESOLUTION_FORMAT_TYPE,
-) -> str:
-    from version_pioneer import __version__
-
-    if output_format == ResolutionFormat.python:
-        return template.EXEC_OUTPUT_PYTHON.format(
-            version_pioneer_version=__version__,
-            version_dict=json.dumps(version_dict),
-        )
-    elif output_format == ResolutionFormat.json:
-        return json.dumps(version_dict)
-    elif output_format == ResolutionFormat.version_string:
-        return version_dict["version"]
-    else:
-        raise ValueError(f"Invalid output format: {output_format}")
 
 
 def exec_version_py(
@@ -110,7 +78,7 @@ def exec_version_py(
         )
 
     version_dict = exec_version_py_to_get_version_dict(version_py_file)
-    return _version_dict_to_str(version_dict, output_format)
+    return version_dict_to_str(version_dict, output_format)
 
 
 def get_version_builtin(
@@ -140,4 +108,4 @@ def get_version_builtin(
     version_dict = get_version_dict(
         cfg, cwd=Path.cwd() if project_dir is None else project_dir
     )
-    return _version_dict_to_str(version_dict, output_format)
+    return version_dict_to_str(version_dict, output_format)
