@@ -11,14 +11,11 @@ jobs:
     uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
     with:
       check-type: format
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt
   ruff-isort-on-changes:
     uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
     with:
       check-type: isort
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt
   ruff-lint-on-changes:
     uses: deargen/workflows/.github/workflows/check-ruff-only-changed.yml@master
     with:
       check-type: lint
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt

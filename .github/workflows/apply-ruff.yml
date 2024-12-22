@@ -16,4 +16,3 @@ jobs:
     with:
       ruff-select: ${{ github.event.inputs.ruff-select }}
       ruff-ignore: ${{ github.event.inputs.ruff-ignore }}
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt

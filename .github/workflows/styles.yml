@@ -16,9 +16,7 @@ jobs:
     uses: deargen/workflows/.github/workflows/check-ruff.yml@master
     with:
       check-type: format
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt
   ruff-isort:
     uses: deargen/workflows/.github/workflows/check-ruff.yml@master
     with:
       check-type: isort
-      ruff-version-file: deps/lock/x86_64-manylinux_2_28/requirements_dev.txt
