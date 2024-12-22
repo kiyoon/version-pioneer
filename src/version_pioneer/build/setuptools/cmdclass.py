@@ -302,6 +302,16 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                     ["tool", "version-pioneer", "versionfile-source"],
                 )
             )
+            try:
+                self.versionfile_build = Path(
+                    get_toml_value(
+                        pyproject_toml,
+                        ["tool", "version-pioneer", "versionfile-build"],
+                    )
+                )
+            except KeyError:
+                self.versionfile_build = None
+
             self.version_dict = exec_version_py_to_get_version_dict(
                 pyproject_toml_file.parent / self.versionfile_source
             )
@@ -315,11 +325,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             # now locate _version.py in the new base_dir directory
             # (remembering that it may be a hardlink) and replace it with an
             # updated value
-            target_versionfile = Path(base_dir) / self.versionfile_source
-            print(f"UPDATING {target_versionfile}")
-            target_versionfile.write_text(
-                version_dict_to_str(self.version_dict, output_format="python")
-            )
+
+            if self.versionfile_build is None:
+                print("Skipping version update due to versionfile-build not set.")
+                print(
+                    "This is a new behaviour in Version-Pioneer, because Versioneer didn't build wheels consistently."
+                )
+                print("Please report if you find bugs.")
+            else:
+                target_versionfile = Path(base_dir) / self.versionfile_source
+                print(f"UPDATING {target_versionfile}")
+                target_versionfile.write_text(
+                    version_dict_to_str(self.version_dict, output_format="python")
+                )
 
     cmds["sdist"] = CmdSdist
 

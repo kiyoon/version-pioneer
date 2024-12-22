@@ -26,6 +26,9 @@ def load_toml(file: str | PathLike) -> dict[str, Any]:
 
 class CustomPioneerBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
+        self.temp_version_file_original = None
+        self.temp_version_file = None
+
         if version == "editable":
             return
 
@@ -36,15 +39,19 @@ class CustomPioneerBuildHook(BuildHookInterface):
         )
         version_py = versionfile_source.read_text()
 
-        # Include original version file in the build, because it is needed in CLI
-        self.temp_version_file_original = tempfile.NamedTemporaryFile(  # noqa: SIM115
-            mode="w", delete=True
-        )
-        self.temp_version_file_original.write(version_py)
-        self.temp_version_file_original.flush()
-        build_data["force_include"][self.temp_version_file_original.name] = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
-        ).with_name("_version_orig.py")
+        version_orig_file = versionfile_source.with_name("_version_orig.py")
+        if not (self.root / version_orig_file).exists():
+            # Include original version file in the build, because it is needed in CLI or plugin
+            # But this could be called twice (project_dir -> sdist -> wheel) so we need to check
+            # if the file already exists
+            self.temp_version_file_original = tempfile.NamedTemporaryFile(  # noqa: SIM115
+                mode="w", delete=True
+            )
+            self.temp_version_file_original.write(version_py)
+            self.temp_version_file_original.flush()
+            build_data["force_include"][self.temp_version_file_original.name] = (
+                version_orig_file
+            )
 
         # evaluate the original _version.py file to get the computed version
         module_globals = {}
@@ -74,7 +81,9 @@ class CustomPioneerBuildHook(BuildHookInterface):
         build_data: dict[str, Any],
         artifact_path: str,
     ) -> None:
-        if version != "editable":
-            # Delete the temporary version file
-            self.temp_version_file_original.close()
+        # Delete the temporary version file
+        if self.temp_version_file is not None:
             self.temp_version_file.close()
+
+        if self.temp_version_file_original is not None:
+            self.temp_version_file_original.close()

@@ -8,21 +8,24 @@ import pytest
 from tests.utils import (
     VersionPyResolutionError,
     assert_build_and_version_persistence,
-    run,
-    verify_resolved_version_py,
+    assert_build_consistency,
 )
-from version_pioneer.api import get_version_py_code
 
+from .build_helpers import check_no_versionfile_build
 from .utils import build_project
 
 logger = logging.getLogger(__name__)
 
 
-def test_build(new_setuptools_project: Path):
+def test_build_consistency(new_setuptools_project: Path):
+    assert_build_consistency(cwd=new_setuptools_project)
+
+
+def test_build_version(new_setuptools_project: Path):
     assert_build_and_version_persistence(new_setuptools_project)
 
 
-def test_invalid_config(new_setuptools_project: Path, plugin_dir: Path):
+def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
     """
     Missing config makes the build fail with a meaningful error message.
     """
@@ -32,7 +35,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_dir: Path):
     pyp.write_text(
         textwrap.dedent(f"""
             [build-system]
-            requires = ["setuptools", "version-pioneer @ {plugin_dir.as_uri()}"]
+            requires = ["setuptools", "version-pioneer @ {plugin_wheel.as_uri()}"]
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
@@ -45,17 +48,17 @@ def test_invalid_config(new_setuptools_project: Path, plugin_dir: Path):
         """),
     )
 
-    out = build_project(check=False)
+    err = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
-        in out
-    ), out
+        in err
+    ), err
 
     pyp.write_text(
         textwrap.dedent(f"""
             [build-system]
-            requires = ["hatchling", "version-pioneer @ {plugin_dir.as_uri()}"]
+            requires = ["hatchling", "version-pioneer @ {plugin_wheel.as_uri()}"]
             build-backend = "hatchling.build"
 
             [tool.hatch.version]
@@ -74,16 +77,16 @@ def test_invalid_config(new_setuptools_project: Path, plugin_dir: Path):
         """),
     )
 
-    out = build_project(check=False)
+    err = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
-        in out
-    ), out
+        in err
+    ), err
 
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
-def test_no_versionfile_build(new_setuptools_project: Path, plugin_dir: Path):
+def test_no_versionfile_build(new_setuptools_project: Path, plugin_wheel: Path):
     """
     If versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
     """
@@ -98,7 +101,7 @@ def test_no_versionfile_build(new_setuptools_project: Path, plugin_dir: Path):
     pyp.write_text(
         textwrap.dedent(f"""
             [build-system]
-            requires = ["setuptools", "version-pioneer @ {plugin_dir.as_uri()}"]
+            requires = ["setuptools", "version-pioneer @ {plugin_wheel.as_uri()}"]
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
@@ -112,21 +115,18 @@ def test_no_versionfile_build(new_setuptools_project: Path, plugin_dir: Path):
         """),
     )
 
-    subprocess.run(["git", "add", "."], check=True)
-    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
-    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+    # Can't use dynamic versioning without versionfile-build.
+    setup_py = new_setuptools_project / "setup.py"
+    setup_py.write_text(
+        textwrap.dedent("""
+            from setuptools import setup
+            from version_pioneer.build.setuptools import get_cmdclass
 
-    build_project(check=False)
+            setup(
+                version="0.1.1",
+                cmdclass=get_cmdclass(),
+            )
+        """),
+    )
 
-    # logger.info(list((new_hatchling_project / "dist").glob("*")))
-    whl = new_setuptools_project / "dist" / "my_app-0.1.1-py3-none-any.whl"
-
-    assert whl.exists()
-
-    run("wheel", "unpack", whl)
-
-    resolved_version_py = (
-        new_setuptools_project / "my_app-0.1.1" / "my_app" / "_version.py"
-    ).read_text()
-    assert resolved_version_py == get_version_py_code()
-    verify_resolved_version_py(resolved_version_py)  # expected to fail
+    check_no_versionfile_build(cwd=new_setuptools_project)

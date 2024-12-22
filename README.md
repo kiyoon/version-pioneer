@@ -502,3 +502,15 @@ $ version-pioneer get-version-builtin --style digits
 
 - Only supports git.
 - `git archive` is not supported. Original Versioneer uses `.gitattributes` to tell git to replace some strings in `_version.py` when archiving. But this is not enough information (at least in my case) and the version string always becomes `0+unknown`. So I dropped it.
+
+## 🚧 Development
+
+Run tests:
+
+```bash
+# install uv (brew install uv, pip install uv, ...)
+uv pip install deps/requirements-dev.txt
+pytest
+```
+
+`uv` is required to run tests because we use `uv build`.
