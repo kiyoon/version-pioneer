@@ -39,7 +39,7 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 - Works with any language, not just Python.
 - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
 
-## 🚦 Usage (with build backend hooks) 
+## 🚦 Usage (with build backend plugins) 
 
 For `setuptools`, `hatchling` and `pdm-backend`, you can configure using the provided plugins. Below section describe how they work, so you can customise the behaviour by making your own hook as well, if you wish!
 
@@ -58,6 +58,27 @@ versionfile-build = "my_project/_version.py"
     ```
 3. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
 4. Configure your build backend to execute `_version.py` and use the version string. For example, Hatchling and PDM are supported.
+
+📦 Setuptools:
+
+```toml
+# append to pyproject.toml
+[build-system]
+requires = ["setuptools", "version-pioneer"]
+build-backend = "setuptools.build_meta"
+```
+
+`setup.py`:
+
+```python
+from setuptools import setup
+from version_pioneer.build.setuptools import get_cmdclass, get_version
+
+setup(
+    version=get_version(),
+    cmdclass=get_cmdclass(),
+)
+```
 
 🥚 Hatchling:
 

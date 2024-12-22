@@ -8,9 +8,9 @@ from typing import Any
 
 from version_pioneer.api import exec_version_py
 from version_pioneer.utils.exec_version_py import (
-    exec_version_py_to_get_version,
     exec_version_py_to_get_version_dict,
     find_version_py_from_project_dir,
+    version_dict_to_str,
 )
 from version_pioneer.utils.toml import (
     find_pyproject_toml,
@@ -294,19 +294,20 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
 
     class CmdSdist(_sdist):
         def run(self) -> None:
-            self.pyproject_toml_file = find_pyproject_toml()
-            pyproject_toml = load_toml(self.pyproject_toml_file)
+            pyproject_toml_file = find_pyproject_toml()
+            pyproject_toml = load_toml(pyproject_toml_file)
             self.versionfile_source = Path(
                 get_toml_value(
                     pyproject_toml,
                     ["tool", "version-pioneer", "versionfile-source"],
                 )
             )
+            self.version_dict = exec_version_py_to_get_version_dict(
+                pyproject_toml_file.parent / self.versionfile_source
+            )
             # unless we update this, the command will keep using the old
             # version
-            self.distribution.metadata.version = exec_version_py_to_get_version(
-                self.pyproject_toml_file.parent / self.versionfile_source
-            )
+            self.distribution.metadata.version = self.version_dict["version"]
             return _sdist.run(self)
 
         def make_release_tree(self, base_dir: str, files: list[str]) -> None:
@@ -317,10 +318,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             target_versionfile = Path(base_dir) / self.versionfile_source
             print(f"UPDATING {target_versionfile}")
             target_versionfile.write_text(
-                exec_version_py(
-                    self.pyproject_toml_file.parent / self.versionfile_source,
-                    output_format="python",
-                )
+                version_dict_to_str(self.version_dict, output_format="python")
             )
 
     cmds["sdist"] = CmdSdist
