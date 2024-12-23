@@ -136,17 +136,19 @@ def assert_build_and_version_persistence(project_dir: Path):
     rmtree(project_dir / "dist")
     subprocess.run(["git", "add", "."], cwd=project_dir, check=True)
     subprocess.run(
-        ["git", "commit", "-am", "Second commit"], cwd=project_dir, check=True
+        ["git", "commit", "--allow-empty", "-am", "Second commit"],
+        cwd=project_dir,
+        check=True,
     )
 
-    # ps = subprocess.run(
-    #     ["git", "status"],
-    #     cwd=new_hatchling_project,
-    #     check=True,
-    #     capture_output=True,
-    #     text=True,
-    # )
-    # logger.info(ps.stdout)
+    ps = subprocess.run(
+        ["git", "status"],
+        cwd=project_dir,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    logger.info(ps.stdout)
 
     dynamic_version = get_dynamic_version(project_dir)
     logger.info(f"Version after one commit (dynamic): {dynamic_version}")
@@ -189,15 +191,17 @@ def assert_build_and_version_persistence(project_dir: Path):
     # modify a file and see if .dirty is appended
     # only unstaged changes count, and not a new file. So we remove what we added earlier.
     rmtree(project_dir / "my_app-0.1.0")
+    (project_dir / "aaa.txt").touch()
+    subprocess.run(["git", "add", "."], cwd=project_dir, check=True)
 
-    ps = subprocess.run(
-        ["git", "status"],
-        cwd=project_dir,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    logger.info(ps.stdout)
+    # ps = subprocess.run(
+    #     ["git", "status"],
+    #     cwd=project_dir,
+    #     check=True,
+    #     capture_output=True,
+    #     text=True,
+    # )
+    # logger.info(ps.stdout)
 
     dynamic_version = get_dynamic_version(project_dir)
     logger.info(

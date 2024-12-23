@@ -121,7 +121,6 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root.write_text("")
 
     version_file = package_dir / "_version.py"
-    # copy2(get_version_py_path(), version_file)
     version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)
@@ -184,7 +183,6 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root.write_text("")
 
     version_file = package_dir / "_version.py"
-    # copy2(get_version_py_path(), version_file)
     version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)
@@ -227,11 +225,7 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
         encoding="utf-8",
     )
 
-    setup_file = project_dir / "setup.py"
-    setup_file.write_text(SETUP_PY)
-
     # NOTE: without gitignore, build will create artifacts which makes the version always dirty
-    gitignore_file = project_dir / ".gitignore"
     gitignore_file = project_dir / ".gitignore"
     gitignore_file.write_text(
         textwrap.dedent("""
@@ -247,7 +241,6 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root.write_text("")
 
     version_file = package_dir / "_version.py"
-    # copy2(get_version_py_path(), version_file)
     version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)

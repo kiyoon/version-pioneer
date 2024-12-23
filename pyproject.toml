@@ -57,7 +57,7 @@ version-pioneer = "version_pioneer.cli:main"
 version-pioneer = "version_pioneer.build.hatchling.hooks"
 
 [project.entry-points."pdm.build.hook"]
-version-pioneer = "version_pioneer.build.pdm.hooks"
+version-pioneer = "version_pioneer.build.pdm.hooks:VersionPioneerBuildHook"
 
 [tool.projector.pip_compile]
 # https://github.com/deargen/workflows/blob/master/python-projector
