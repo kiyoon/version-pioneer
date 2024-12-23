@@ -61,17 +61,39 @@ For `setuptools`, `hatchling` and `pdm-backend`, you can configure using the pro
 
 ```toml
 [tool.version-pioneer]
-versionfile-source = "src/my_project/_version.py"
-versionfile-build = "my_project/_version.py"
+versionscript-source = "src/my_project/_version_pioneer.py"  # Where to read the Version-Pioneer script.
+# versionscript-source = "src/my_project/_version.py"  # If you want to replace the script, instead of writing a new one.
+versionfile-source = "src/my_project/_version.py"  # Where to write the version string for sdist.
+versionfile-wheel = "my_project/_version.py"  # Where to write the version string for wheel. NOT USED in Hatchling (analogous to versionfile-sdist).
 ```
 
-2. Copy-paste [`src/version_pioneer/_version.py`](src/version_pioneer/_version.py) to your project.
+2. Copy-paste [`src/version_pioneer/_version_pioneer.py`](src/version_pioneer/_version_pioneer.py) to your project.
     - You can use the CLI to install. Read [#version-pioneer-cli](#-version-pioneer-cli) section.  
     ```bash
-    version-pioneer install
+    version-pioneer install-script
     ```
-3. Customise `_version.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
-4. Configure your build backend to execute `_version.py` and use the version string. For example, Hatchling and PDM are supported.
+3. Customise `_version_pioneer.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`.
+4. Configure your build backend to execute `_version_pioneer.py` and use the version string. For example, Hatchling and PDM are supported.
+5. You can use the version string by importing from `_version_pioneer.py` or `_version.py` in your project.
+
+Unlike versioneer, this doesn't get automatically installed with `version-pioneer install` (for flexibility).
+
+```python
+# src/my_project/__init__.py
+
+try:
+    from ._version import __version__  # If installed with a distributed package, use the generated version file.
+except ModuleNotFoundError:
+    from ._version_pioneer import __version__  # In development mode, use script (pip install -e .)
+```
+
+> [!TIP]
+> **Why include both the script and the generated constant version file in the distributed package?**
+> - It ensures consistency between development and distribution, making customisation easier in advanced usage cases.
+> - This approach simplifies understanding the behavior for the user.
+> - Users may want to import components like *type definitions*, *configuration*, etc., from the script.
+> - It eliminates concerns about complex logic when building a wheel, which can involve sequential builds (e.g., project -> sdist -> wheel), reducing potential bugs.
+> - IT'S NOT MANDATORY; we still support replacing the script with the generated version file. Simply set `versionfile-source` to the same as `versionscript-source`.
 
 📦 Setuptools:
 
@@ -508,7 +530,6 @@ $ version-pioneer get-version-builtin --output-format json
 $ version-pioneer get-version-builtin --style digits
 0.1.0.9
 ```
-
 
 ## 📚 Note
 

@@ -1,3 +1,4 @@
+# ruff: noqa: T201
 from __future__ import annotations
 
 import stat
@@ -39,6 +40,9 @@ class VersionPioneerBuildHook(BuildHookInterface):
         # evaluate the original _version.py file to get the computed version
         # replace the file with the constant version
         try:
+            # In hatchling, versionfile-build setting doesn't actually get used.
+            # Instead, the versionfile-source needs to be used to locate the build _version.py file.
+            # We still check the existence of versionfile-build to see if users want to replace the _version.py file.
             versionfile_build = str(
                 pyproject_toml["tool"]["version-pioneer"]["versionfile-build"]
             )
@@ -46,12 +50,12 @@ class VersionPioneerBuildHook(BuildHookInterface):
             print("No versionfile-build specified in pyproject.toml")
             print("Skipping replacing the _version.py file")
         else:
-            if versionfile_build != str(versionfile_source):
-                raise ValueError(
-                    "For hatchling backend, versionfile-build must be the same as versionfile-source. "
-                    "Or set versionfile-build to None to skip replacing the _version.py file."
-                    f"Got {versionfile_build} and {versionfile_source}"
-                )
+            # if versionfile_build != str(versionfile_source):
+            #     raise ValueError(
+            #         "For hatchling backend, versionfile-build must be the same as versionfile-source. "
+            #         "Or set versionfile-build to None to skip replacing the _version.py file."
+            #         f"Got {versionfile_build} and {versionfile_source}"
+            #     )
 
             self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
             version_dict = exec_version_py_code_to_get_version_dict(
@@ -68,7 +72,9 @@ class VersionPioneerBuildHook(BuildHookInterface):
                 versionfile_build_temp.stat().st_mode | stat.S_IEXEC
             )
 
-            build_data["force_include"][self.temp_version_file.name] = versionfile_build
+            build_data["force_include"][self.temp_version_file.name] = (
+                versionfile_source
+            )
 
     def finalize(
         self,

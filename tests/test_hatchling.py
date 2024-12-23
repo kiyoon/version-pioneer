@@ -85,7 +85,7 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
 
             [tool.version-pioneer]
             # versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "src/my_app/_version.py"
+            versionfile-build = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -100,35 +100,35 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
         in err
     ), err
 
-    pyp.write_text(
-        textwrap.dedent(f"""
-            [build-system]
-            requires = ["hatchling", "version-pioneer @ {plugin_wheel.as_uri()}"]
-            build-backend = "hatchling.build"
-
-            [tool.hatch.version]
-            source = "code"
-            path = "src/my_app/_version.py"
-
-            [tool.hatch.build.hooks.version-pioneer]
-
-            [tool.version-pioneer]
-            # THE TWO MUST BE THE SAME WITH HATCHLING
-            versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
-
-            [project]
-            name = "my-app"
-            dynamic = ["version"]
-        """),
-    )
-
-    err = build_project(check=False)
-
-    assert (
-        "ValueError: For hatchling backend, versionfile-build must be the same as versionfile-source."
-        in err
-    ), err
+    # pyp.write_text(
+    #     textwrap.dedent(f"""
+    #         [build-system]
+    #         requires = ["hatchling", "version-pioneer @ {plugin_wheel.as_uri()}"]
+    #         build-backend = "hatchling.build"
+    #
+    #         [tool.hatch.version]
+    #         source = "code"
+    #         path = "src/my_app/_version.py"
+    #
+    #         [tool.hatch.build.hooks.version-pioneer]
+    #
+    #         [tool.version-pioneer]
+    #         # THE TWO MUST BE THE SAME WITH HATCHLING
+    #         versionfile-source = "src/my_app/_version.py"
+    #         versionfile-build = "my_app/_version.py"
+    #
+    #         [project]
+    #         name = "my-app"
+    #         dynamic = ["version"]
+    #     """),
+    # )
+    #
+    # err = build_project(check=False)
+    #
+    # assert (
+    #     "ValueError: For hatchling backend, versionfile-build must be the same as versionfile-source."
+    #     in err
+    # ), err
 
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
