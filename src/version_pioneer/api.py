@@ -3,7 +3,7 @@ from __future__ import annotations
 import textwrap
 from pathlib import Path
 
-from version_pioneer.utils.exec_version_py import (
+from version_pioneer.utils.exec_version_script import (
     RESOLUTION_FORMAT_TYPE,
     ResolutionFormat,
     version_dict_to_str,
@@ -34,7 +34,7 @@ def get_version_script_core_code():
     return version_py_code
 
 
-def exec_version_py(
+def exec_version_script(
     project_dir_or_version_py_file: Path | None = None,
     *,
     output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.version_string,
@@ -63,8 +63,8 @@ def exec_version_py(
 
             print(json.dumps(get_version_dict()))
     """
-    from version_pioneer.utils.exec_version_py import (
-        exec_version_py_to_get_version_dict,
+    from version_pioneer.utils.exec_version_script import (
+        exec_version_script_to_get_version_dict,
         find_version_script_from_project_dir,
     )
 
@@ -77,7 +77,7 @@ def exec_version_py(
             project_dir_or_version_py_file
         )
 
-    version_dict = exec_version_py_to_get_version_dict(version_py_file)
+    version_dict = exec_version_script_to_get_version_dict(version_py_file)
     return version_dict_to_str(version_dict, output_format)
 
 

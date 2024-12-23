@@ -61,7 +61,7 @@ def find_version_script_from_project_dir(
     return version_py_file
 
 
-def exec_version_py_code_to_get_version_dict(version_py_code: str) -> VersionDict:
+def exec_version_script_code_to_get_version_dict(version_py_code: str) -> VersionDict:
     """
     Execute `get_version_dict()` in _version.py.
     """
@@ -70,11 +70,13 @@ def exec_version_py_code_to_get_version_dict(version_py_code: str) -> VersionDic
     return module_globals["get_version_dict"]()
 
 
-def exec_version_py_to_get_version_dict(version_py_path: str | PathLike) -> VersionDict:
+def exec_version_script_to_get_version_dict(
+    version_py_path: str | PathLike,
+) -> VersionDict:
     """Execute _version.py to get __version_dict__."""
     version_py_path = Path(version_py_path)
     code = version_py_path.read_text()
-    return exec_version_py_code_to_get_version_dict(code)
+    return exec_version_script_code_to_get_version_dict(code)
 
 
 def version_dict_to_str(

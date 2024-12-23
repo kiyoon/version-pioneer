@@ -26,7 +26,7 @@ from rich.prompt import Confirm
 from rich.syntax import Syntax
 
 from version_pioneer.utils.diff import unidiff_output
-from version_pioneer.utils.exec_version_py import ResolutionFormat
+from version_pioneer.utils.exec_version_script import ResolutionFormat
 from version_pioneer.version_pioneer_core import VersionStyle
 
 if sys.version_info < (3, 9):
@@ -111,14 +111,16 @@ def print_orig_version_py_code():
 
 
 @app.command()
-def exec_version_py(
+def exec_version_script(
     project_dir_or_version_py_file: Annotated[Optional[Path], typer.Argument()] = None,
     output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """Resolve the _version.py file for build, and print the content."""
-    from version_pioneer.api import exec_version_py
+    from version_pioneer.api import exec_version_script
 
-    print(exec_version_py(project_dir_or_version_py_file, output_format=output_format))
+    print(
+        exec_version_script(project_dir_or_version_py_file, output_format=output_format)
+    )
 
 
 @app.command()

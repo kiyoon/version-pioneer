@@ -3,8 +3,8 @@ from pathlib import Path
 
 from pdm.backend.hooks.base import Context
 
-from version_pioneer.utils.exec_version_py import (
-    exec_version_py_to_get_version_dict,
+from version_pioneer.utils.exec_version_script import (
+    exec_version_script_to_get_version_dict,
     version_dict_to_str,
 )
 from version_pioneer.utils.toml import get_toml_value
@@ -18,7 +18,7 @@ class VersionPioneerBuildHook:
                 context.config.data, ["tool", "version-pioneer", "versionscript"]
             )
         )
-        version_dict = exec_version_py_to_get_version_dict(versionscript)
+        version_dict = exec_version_script_to_get_version_dict(versionscript)
 
         # versionscript_code = versionscript.read_text()
         # version_module_globals = {}

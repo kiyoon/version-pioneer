@@ -6,9 +6,9 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from version_pioneer.api import exec_version_py
-from version_pioneer.utils.exec_version_py import (
-    exec_version_py_to_get_version_dict,
+from version_pioneer.api import exec_version_script
+from version_pioneer.utils.exec_version_script import (
+    exec_version_script_to_get_version_dict,
     find_version_script_from_project_dir,
     version_dict_to_str,
 )
@@ -58,7 +58,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             pass
 
         def run(self) -> None:
-            vers = exec_version_py_to_get_version_dict(
+            vers = exec_version_script_to_get_version_dict(
                 find_version_script_from_project_dir()
             )
             print(f"Version: {vers['version']}")
@@ -115,7 +115,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 versionscript = pyproject_toml_file.parent / get_toml_value(
                     pyproject_toml, ["tool", "version-pioneer", "versionscript"]
                 )
-                target_versionfile_content = exec_version_py(
+                target_versionfile_content = exec_version_script(
                     versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
@@ -152,7 +152,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 versionscript = pyproject_toml_file.parent / get_toml_value(
                     pyproject_toml, ["tool", "version-pioneer", "versionscript"]
                 )
-                target_versionfile_content = exec_version_py(
+                target_versionfile_content = exec_version_script(
                     versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
@@ -195,7 +195,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 # HACK: replace _version.py directly in the source tree during build, and restore it.
                 target_versionfile = versionscript
                 print(f"UPDATING {target_versionfile}")
-                target_versionfile_content = exec_version_py(
+                target_versionfile_content = exec_version_script(
                     versionscript, output_format="python"
                 )
                 original_versionscript_content = versionscript.read_text()
@@ -227,7 +227,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 # HACK: replace _version.py directly in the source tree during build, and restore it.
                 target_versionfile = versionscript
                 print(f"UPDATING {target_versionfile}")
-                target_versionfile_content = exec_version_py(
+                target_versionfile_content = exec_version_script(
                     versionscript, output_format="python"
                 )
                 original_versionscript_content = versionscript.read_text()
@@ -312,7 +312,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             except KeyError:
                 self.versionfile_sdist = None
 
-            self.version_dict = exec_version_py_to_get_version_dict(
+            self.version_dict = exec_version_script_to_get_version_dict(
                 pyproject_toml_file.parent / versionscript
             )
             # unless we update this, the command will keep using the old

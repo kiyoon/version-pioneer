@@ -11,9 +11,9 @@ from typing import ForwardRef
 
 import pytest
 
-from version_pioneer.utils.exec_version_py import (
-    exec_version_py_code_to_get_version_dict,
-    exec_version_py_to_get_version_dict,
+from version_pioneer.utils.exec_version_script import (
+    exec_version_script_code_to_get_version_dict,
+    exec_version_script_to_get_version_dict,
 )
 from version_pioneer.version_pioneer_core import VersionDict
 
@@ -115,7 +115,9 @@ def verify_resolved_version_py(resolved_version_py_code: str):
         )
 
     # Can you execute it without dependencies?
-    version_dict = exec_version_py_code_to_get_version_dict(resolved_version_py_code)
+    version_dict = exec_version_script_code_to_get_version_dict(
+        resolved_version_py_code
+    )
 
     # Can you get the version?
     version = version_dict["version"]
@@ -137,4 +139,4 @@ def verify_resolved_version_py(resolved_version_py_code: str):
 
 def get_dynamic_version(project_dir: Path) -> str:
     version_module_code = project_dir / "src" / "my_app" / "_version.py"
-    return exec_version_py_to_get_version_dict(version_module_code)["version"]
+    return exec_version_script_to_get_version_dict(version_module_code)["version"]
