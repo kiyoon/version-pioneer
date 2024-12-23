@@ -8,7 +8,7 @@ import pytest
 from .build_pipelines import (
     assert_build_and_version_persistence,
     assert_build_consistency,
-    check_no_versionfile_build,
+    check_no_versionfile_output,
 )
 from .utils import (
     VersionPyResolutionError,
@@ -52,6 +52,7 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
             [tool.hatch.version]
             source = "code"
             path = "src/my_app/_version.py"
+            expression = "get_version_dict()['version']"
 
             [tool.hatch.build.hooks.version-pioneer]
 
@@ -67,7 +68,7 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
         in err
     ), err
 
@@ -80,11 +81,13 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
             [tool.hatch.version]
             source = "code"
             path = "src/my_app/_version.py"
+            expression = "get_version_dict()['version']"
 
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            # versionfile-source = "src/my_app/_version.py"
+            # versionscript-source = "src/my_app/_version.py"
+            versionfile-source = "src/my_app/_version.py"
             versionfile-build = "my_app/_version.py"
 
             [project]
@@ -96,45 +99,15 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
         in err
     ), err
 
-    # pyp.write_text(
-    #     textwrap.dedent(f"""
-    #         [build-system]
-    #         requires = ["hatchling", "version-pioneer @ {plugin_wheel.as_uri()}"]
-    #         build-backend = "hatchling.build"
-    #
-    #         [tool.hatch.version]
-    #         source = "code"
-    #         path = "src/my_app/_version.py"
-    #
-    #         [tool.hatch.build.hooks.version-pioneer]
-    #
-    #         [tool.version-pioneer]
-    #         # THE TWO MUST BE THE SAME WITH HATCHLING
-    #         versionfile-source = "src/my_app/_version.py"
-    #         versionfile-build = "my_app/_version.py"
-    #
-    #         [project]
-    #         name = "my-app"
-    #         dynamic = ["version"]
-    #     """),
-    # )
-    #
-    # err = build_project(check=False)
-    #
-    # assert (
-    #     "ValueError: For hatchling backend, versionfile-build must be the same as versionfile-source."
-    #     in err
-    # ), err
-
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
-def test_no_versionfile_build(new_hatchling_project: Path, plugin_wheel: Path):
+def test_no_versionfile_source(new_hatchling_project: Path, plugin_wheel: Path):
     """
-    If versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    If versionfile-source is not configured, the build does NOT FAIL but the _version.py file is not updated.
     """
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_hatchling_project, check=True)
@@ -151,12 +124,13 @@ def test_no_versionfile_build(new_hatchling_project: Path, plugin_wheel: Path):
             [tool.hatch.version]
             source = "code"
             path = "src/my_app/_version.py"
+            expression = "get_version_dict()['version']"
 
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            versionfile-source = "src/my_app/_version.py"
-            # versionfile-build = "src/my_app/_version.py"
+            versionscript-source = "src/my_app/_version.py"
+            # versionfile-source = "src/my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -165,4 +139,14 @@ def test_no_versionfile_build(new_hatchling_project: Path, plugin_wheel: Path):
         """),
     )
 
-    check_no_versionfile_build(cwd=new_hatchling_project)
+    subprocess.run(["git", "add", "."], check=True)
+    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
+    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+
+    assert_build_consistency(version="0.1.1", cwd=new_hatchling_project)
+    # No need to build again. We check the _version.py file directly on sdist and wheel.
+    Path(new_hatchling_project / "dist-separated").rename(
+        new_hatchling_project / "dist"
+    )
+
+    check_no_versionfile_output(cwd=new_hatchling_project)

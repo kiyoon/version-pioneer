@@ -20,7 +20,7 @@ from tests.utils import (
     run,
     verify_resolved_version_py,
 )
-from version_pioneer.api import get_version_py_code
+from version_pioneer.api import get_version_script_core_code
 from version_pioneer.utils.exec_version_py import (
     exec_version_py_code_to_get_version_dict,
 )
@@ -233,38 +233,34 @@ def assert_build_and_version_persistence(project_dir: Path):
     assert dynamic_version == version_after_commit_resolved
 
 
-def check_no_versionfile_build(cwd: Path):
+def check_no_versionfile_output(cwd: Path, mode: str = "both"):
     """
-    Check when versionfile-build is not set. Must be used with xfail(raise=VersionPyResolutionError).
+    Check when versionfile-source or versionfile-build is not set. Must be used with xfail(raise=VersionPyResolutionError).
+
+    Assume dist/ exists and contains the built files.
     """
-    subprocess.run(["git", "add", "."], check=True)
-    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
-    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+    if mode not in ("sdist", "wheel", "both"):
+        raise ValueError(f"Invalid mode: {mode}")
+    if mode in ("sdist", "both"):
+        sdist = cwd / "dist" / "my_app-0.1.1.tar.gz"
+        assert sdist.exists()
+        subprocess.run(["tar", "xzf", sdist], cwd=cwd / "dist", check=True)
+        unresolved_version_py = (
+            cwd / "dist" / "my_app-0.1.1" / "src" / "my_app" / "_version.py"
+        ).read_text()
+        assert unresolved_version_py == get_version_script_core_code()
+        verify_resolved_version_py(unresolved_version_py)  # expected to fail
+    if mode in ("wheel", "both"):
+        # logger.info(list((cwd / "dist").glob("*")))
+        whl = cwd / "dist" / "my_app-0.1.1-py3-none-any.whl"
 
-    assert_build_consistency(version="0.1.1", cwd=cwd)
+        assert whl.exists()
 
-    # No need to build again. We check the _version.py file directly on sdist and wheel.
-    Path(cwd / "dist-separated").rename(cwd / "dist")
+        run("wheel", "unpack", whl, "--dest", cwd / "dist")
 
-    sdist = cwd / "dist" / "my_app-0.1.1.tar.gz"
-    assert sdist.exists()
-    subprocess.run(["tar", "xzf", sdist], cwd=cwd / "dist", check=True)
-    unresolved_version_py = (
-        cwd / "dist" / "my_app-0.1.1" / "src" / "my_app" / "_version.py"
-    ).read_text()
-    assert unresolved_version_py == get_version_py_code()
-    verify_resolved_version_py(unresolved_version_py)  # expected to fail
+        unresolved_version_py = (
+            cwd / "dist" / "my_app-0.1.1" / "my_app" / "_version.py"
+        ).read_text()
+        assert unresolved_version_py == get_version_script_core_code()
+        verify_resolved_version_py(unresolved_version_py)  # expected to fail
     rmtree(cwd / "dist")
-
-    # logger.info(list((cwd / "dist").glob("*")))
-    whl = cwd / "dist" / "my_app-0.1.1-py3-none-any.whl"
-
-    assert whl.exists()
-
-    run("wheel", "unpack", whl, "--dest", cwd / "dist")
-
-    unresolved_version_py = (
-        cwd / "dist" / "my_app-0.1.1" / "my_app" / "_version.py"
-    ).read_text()
-    assert unresolved_version_py == get_version_py_code()
-    verify_resolved_version_py(unresolved_version_py)  # expected to fail

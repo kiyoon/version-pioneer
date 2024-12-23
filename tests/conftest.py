@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 import textwrap
 from pathlib import Path
@@ -7,7 +6,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from version_pioneer.api import get_version_py_code
+from version_pioneer.api import get_version_script_core_code
 from version_pioneer.template import SETUP_PY
 
 from .utils import build_project
@@ -88,12 +87,14 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             [tool.hatch.version]
             source = "code"
             path = "src/my_app/_version.py"
+            expression = "get_version_dict()['version']"
 
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
+            versionscript-source = "src/my_app/_version.py"
             versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "src/my_app/_version.py"
+            versionfile-build = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -121,7 +122,7 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
 
     version_file = package_dir / "_version.py"
     # copy2(get_version_py_path(), version_file)
-    version_file.write_text(get_version_py_code())
+    version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)
 
@@ -151,6 +152,7 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
+            versionscript-source = "src/my_app/_version.py"
             versionfile-source = "src/my_app/_version.py"
             versionfile-build = "my_app/_version.py"
 
@@ -183,7 +185,7 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
 
     version_file = package_dir / "_version.py"
     # copy2(get_version_py_path(), version_file)
-    version_file.write_text(get_version_py_code())
+    version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)
 
@@ -213,6 +215,7 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             build-backend = "pdm.backend"
 
             [tool.version-pioneer]
+            versionscript-source = "src/my_app/_version.py"
             versionfile-source = "src/my_app/_version.py"
             versionfile-build = "my_app/_version.py"
 
@@ -245,7 +248,7 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
 
     version_file = package_dir / "_version.py"
     # copy2(get_version_py_path(), version_file)
-    version_file.write_text(get_version_py_code())
+    version_file.write_text(get_version_script_core_code())
 
     monkeypatch.chdir(project_dir)
 

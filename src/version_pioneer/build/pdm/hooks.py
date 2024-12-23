@@ -3,29 +3,44 @@ from pathlib import Path
 
 from pdm.backend.hooks.base import Context
 
-from version_pioneer.api import exec_version_py
+from version_pioneer.utils.exec_version_py import (
+    exec_version_py_to_get_version_dict,
+    version_dict_to_str,
+)
 
 
 class VersionPioneerBuildHook:
     def pdm_build_initialize(self, context: Context):
         # Update metadata version
-        versionfile_source = Path(
-            context.config.data["tool"]["version-pioneer"]["versionfile-source"]
+        versionscript_source = Path(
+            context.config.data["tool"]["version-pioneer"]["versionscript-source"]
         )
-        versionfile_code = versionfile_source.read_text()
-        version_module_globals = {}
-        exec(versionfile_code, version_module_globals)
-        context.config.metadata["version"] = version_module_globals["__version__"]
+        version_dict = exec_version_py_to_get_version_dict(versionscript_source)
+
+        # versionscript_code = versionscript_source.read_text()
+        # version_module_globals = {}
+        # exec(versionscript_code, version_module_globals)
+        # version_dict = version_module_globals["get_version_dict"]()
+
+        context.config.metadata["version"] = version_dict["version"]
 
         # Write the static version file
         if context.target != "editable":
-            versionfile_build = context.build_dir / Path(
-                context.config.data["tool"]["version-pioneer"]["versionfile-build"]
-            )
+            if context.target == "wheel":
+                versionfile_build = context.build_dir / Path(
+                    context.config.data["tool"]["version-pioneer"]["versionfile-build"]
+                )
+            elif context.target == "sdist":
+                versionfile_build = context.build_dir / Path(
+                    context.config.data["tool"]["version-pioneer"]["versionfile-source"]
+                )
+            else:
+                raise ValueError(f"Unsupported target: {context.target}")
+
             context.ensure_build_dir()
             versionfile_build.parent.mkdir(parents=True, exist_ok=True)
             versionfile_build.write_text(
-                exec_version_py(versionfile_source, output_format="python")
+                version_dict_to_str(version_dict, output_format="python")
             )
             # make it executable
             versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)

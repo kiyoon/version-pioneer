@@ -26,7 +26,6 @@ def load_toml(file: str | PathLike) -> dict[str, Any]:
 
 class CustomPioneerBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
-        self.temp_version_file_original = None
         self.temp_version_file = None
 
         if version == "editable":
@@ -34,35 +33,25 @@ class CustomPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
+        versionscript_source = Path(
+            pyproject_toml["tool"]["version-pioneer"]["versionscript-source"]
+        )
         versionfile_source = Path(
             pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
         )
-        version_py = versionfile_source.read_text()
-
-        version_orig_file = versionfile_source.with_name("_version_orig.py")
-        if not (self.root / version_orig_file).exists():
-            # Include original version file in the build, because it is needed in CLI or plugin
-            # But this could be called twice (project_dir -> sdist -> wheel) so we need to check
-            # if the file already exists
-            self.temp_version_file_original = tempfile.NamedTemporaryFile(  # noqa: SIM115
-                mode="w", delete=True
-            )
-            self.temp_version_file_original.write(version_py)
-            self.temp_version_file_original.flush()
-            build_data["force_include"][self.temp_version_file_original.name] = (
-                version_orig_file
-            )
+        versionscript_code = versionscript_source.read_text()
 
         # evaluate the original _version.py file to get the computed version
         module_globals = {}
-        exec(version_py, module_globals)
+        exec(versionscript_code, module_globals)
+        version_dict = module_globals["get_version_dict"]()
 
         # replace the file with the constant version
         self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
         self.temp_version_file.write(
             EXEC_OUTPUT_PYTHON.format(
-                version_pioneer_version=module_globals["__version__"],
-                version_dict=module_globals["__version_dict__"],
+                version_pioneer_version=version_dict["version"],
+                version_dict=version_dict,
             )
         )
         self.temp_version_file.flush()
@@ -71,9 +60,7 @@ class CustomPioneerBuildHook(BuildHookInterface):
         versionfile_build = Path(self.temp_version_file.name)
         versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
 
-        build_data["force_include"][self.temp_version_file.name] = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
-        )
+        build_data["force_include"][self.temp_version_file.name] = versionfile_source
 
     def finalize(
         self,
@@ -84,6 +71,3 @@ class CustomPioneerBuildHook(BuildHookInterface):
         # Delete the temporary version file
         if self.temp_version_file is not None:
             self.temp_version_file.close()
-
-        if self.temp_version_file_original is not None:
-            self.temp_version_file_original.close()

@@ -13,7 +13,7 @@ from tests.utils import (
     VersionPyResolutionError,
 )
 
-from .build_pipelines import check_no_versionfile_build
+from .build_pipelines import check_no_versionfile_output
 from .utils import build_project
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
+            # versionscript-source = "src/my_app/_version.py"
             # versionfile-source = "src/my_app/_version.py"
             # versionfile-build = "my_app/_version.py"
 
@@ -53,44 +54,42 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
         in err
     ), err
 
     pyp.write_text(
         textwrap.dedent(f"""
             [build-system]
-            requires = ["hatchling", "version-pioneer @ {plugin_wheel.as_uri()}"]
-            build-backend = "hatchling.build"
-
-            [tool.hatch.version]
-            source = "code"
-            path = "src/my_app/_version.py"
-
-            [tool.hatch.build.hooks.version-pioneer]
+            requires = ["setuptools", "version-pioneer @ {plugin_wheel.as_uri()}"]
+            build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            # versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
+            # versionscript-source = "src/my_app/_version.py"
+            versionfile-source = "src/my_app/_version.py"
+            # versionfile-build = "my_app/_version.py"
 
             [project]
             name = "my-app"
             dynamic = ["version"]
+            requires-python = ">=3.8"
         """),
     )
 
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionfile-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
         in err
     ), err
 
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
-def test_no_versionfile_build(new_setuptools_project: Path, plugin_wheel: Path):
+def test_no_versionfile_source_and_build(
+    new_setuptools_project: Path, plugin_wheel: Path
+):
     """
-    If versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    If versionfile-source and versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
     """
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_setuptools_project, check=True)
@@ -107,7 +106,8 @@ def test_no_versionfile_build(new_setuptools_project: Path, plugin_wheel: Path):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            versionfile-source = "src/my_app/_version.py"
+            versionscript-source = "src/my_app/_version.py"
+            # versionfile-source = "src/my_app/_version.py"
             # versionfile-build = "my_app/_version.py"
 
             [project]
@@ -131,4 +131,14 @@ def test_no_versionfile_build(new_setuptools_project: Path, plugin_wheel: Path):
         """),
     )
 
-    check_no_versionfile_build(cwd=new_setuptools_project)
+    subprocess.run(["git", "add", "."], check=True)
+    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
+    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+
+    # The build should be consistent still, because we don't update for both sdist and wheel.
+    assert_build_consistency(version="0.1.1", cwd=new_setuptools_project)
+    # No need to build again. We check the _version.py file directly on sdist and wheel.
+    Path(new_setuptools_project / "dist-separated").rename(
+        new_setuptools_project / "dist"
+    )
+    check_no_versionfile_output(cwd=new_setuptools_project)

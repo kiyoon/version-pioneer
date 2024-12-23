@@ -10,13 +10,14 @@ cli = ["deps/requirements-cli.in"]
 
 [tool.hatch.version]
 source = "code"
-path = "src/version_pioneer/_version.py"
-# expression = "__version__"  # default
+path = "src/version_pioneer/version_pioneer_core.py"
+expression = "get_version_dict()['version']"
 
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"
 
 [tool.version-pioneer]
+versionscript-source = "src/version_pioneer/version_pioneer_core.py"
 versionfile-source = "src/version_pioneer/_version.py"
 versionfile-build = "version_pioneer/_version.py"
 
