@@ -81,7 +81,7 @@ def exec_version_py(
     return version_dict_to_str(version_dict, output_format)
 
 
-def get_version_builtin(
+def get_version(
     cwd: Path | None = None,
     *,
     style: VersionStyle = VersionStyle.pep440,

@@ -62,8 +62,8 @@ def common(
 
 @app.command()
 def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
-    """Install _version.py at `tool.version-pioneer.versionfile-source` in pyproject.toml."""
-    from version_pioneer.api import get_version_py_code
+    """Install _version.py at `tool.version-pioneer.versionfile-sdist` in pyproject.toml."""
+    from version_pioneer.api import get_version_script_core_code
     from version_pioneer.utils.toml import (
         find_pyproject_toml,
         get_toml_value,
@@ -75,13 +75,11 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
 
     project_dir = pyproject_toml_file.parent
     version_py_file = project_dir / Path(
-        get_toml_value(
-            pyproject_toml, ["tool", "version-pioneer", "versionfile-source"]
-        )
+        get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionfile-sdist"])
     )
     if version_py_file.exists():
         current_version_py_code = version_py_file.read_text()
-        package_version_py_code = get_version_py_code()
+        package_version_py_code = get_version_script_core_code()
         if current_version_py_code.strip() == package_version_py_code.strip():
             rich.print(
                 f"[green]File already exists:[/green] {version_py_file} (no changes)"
@@ -100,16 +98,16 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
             rich.print("[red]Aborted.[/red]")
             sys.exit(1)
 
-    version_py_file.write_text(get_version_py_code())
+    version_py_file.write_text(get_version_script_core_code())
     rich.print(f"[green]File written:[/green] {version_py_file}")
 
 
 @app.command()
 def print_orig_version_py_code():
     """Print the content of _version.py file (for manual installation)."""
-    from version_pioneer.api import get_version_py_code
+    from version_pioneer.api import get_version_script_core_code
 
-    print(get_version_py_code())
+    print(get_version_script_core_code())
 
 
 @app.command()
@@ -124,7 +122,7 @@ def exec_version_py(
 
 
 @app.command()
-def get_version_builtin(
+def get_version(
     project_dir: Annotated[
         Optional[Path], typer.Argument(help="Git directory. Default is cwd")
     ] = None,
@@ -135,7 +133,7 @@ def get_version_builtin(
     output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """
-    WITHOUT using the _version.py file, get version with Version-Pioneer logic.
+    WITHOUT evaluating the _version.py file, get version from VCS with built-in Version-Pioneer logic.
 
     Useful when you don't need to customise the _version.py file, and you work in non-Python projects
     so you don't care about re-evaluating the version file.
@@ -144,10 +142,10 @@ def get_version_builtin(
         project_dir: The root or child directory of the project.
         parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
     """
-    from version_pioneer.api import get_version_builtin
+    from version_pioneer.api import get_version
 
     print(
-        get_version_builtin(
+        get_version(
             project_dir,
             style=style,
             tag_prefix=tag_prefix,

@@ -25,15 +25,19 @@ jobs:
       changelog-path: docs/CHANGELOG.md
       exclude-types: ${{ github.event.inputs.exclude-types }}
 
-  deploy-mkdocs:
+  publish-to-pypi:
     if: ${{ github.event.inputs.dry-run == 'false' }}
     needs: commit-changelog-and-release
-    uses: deargen/workflows/.github/workflows/deploy-mkdocs.yml@master
-    with:
-      requirements-file: deps/lock/x86_64-manylinux_2_28/requirements_docs.txt
-      gitlab-project: ${{ vars.GITLAB_PROJECT }}
-      gitlab-branch: master
-      version-tag: ${{ github.event.inputs.version-tag }}
-      deploy-type: tag
-    secrets:
-      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version-tag }}
+      - uses: deargen/workflows/actions/setup-python-and-uv@master
+      - name: Build and upload to PyPI
+        run: |
+          uv build
+          uv publish

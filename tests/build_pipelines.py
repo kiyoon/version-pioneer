@@ -239,7 +239,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
 def check_no_versionfile_output(cwd: Path, mode: str = "both"):
     """
-    Check when versionfile-source or versionfile-build is not set. Must be used with xfail(raise=VersionPyResolutionError).
+    Check when versionfile-sdist or versionfile-wheel is not set. Must be used with xfail(raise=VersionPyResolutionError).
 
     Assume dist/ exists and contains the built files.
     """

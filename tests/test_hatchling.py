@@ -68,7 +68,7 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
         in err
     ), err
 
@@ -86,9 +86,9 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            # versionscript-source = "src/my_app/_version.py"
-            versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
+            # versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_version.py"
+            versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -99,15 +99,15 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
         in err
     ), err
 
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
-def test_no_versionfile_source(new_hatchling_project: Path, plugin_wheel: Path):
+def test_no_versionfile_sdist(new_hatchling_project: Path, plugin_wheel: Path):
     """
-    If versionfile-source is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    If versionfile-sdist is not configured, the build does NOT FAIL but the _version.py file is not updated.
     """
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_hatchling_project, check=True)
@@ -129,8 +129,8 @@ def test_no_versionfile_source(new_hatchling_project: Path, plugin_wheel: Path):
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            versionscript-source = "src/my_app/_version.py"
-            # versionfile-source = "src/my_app/_version.py"
+            versionscript = "src/my_app/_version.py"
+            # versionfile-sdist = "src/my_app/_version.py"
 
             [project]
             name = "my-app"

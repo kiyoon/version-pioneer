@@ -45,14 +45,12 @@ def find_version_script_from_project_dir(
     pyproject_toml_file = find_pyproject_toml(project_dir)
     pyproject_toml = load_toml(pyproject_toml_file)
     version_py_file = Path(
-        get_toml_value(
-            pyproject_toml, ["tool", "version-pioneer", "versionscript-source"]
-        )
+        get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionscript"])
     )
     # if not version_py_file.exists():
     #     version_py_file2 = Path(
     #         get_toml_value(
-    #             pyproject_toml, ["tool", "version-pioneer", "versionfile-build"]
+    #             pyproject_toml, ["tool", "version-pioneer", "versionfile-wheel"]
     #         )
     #     )
     #     if not version_py_file2.exists():

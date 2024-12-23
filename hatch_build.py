@@ -33,13 +33,11 @@ class CustomPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
-        versionscript_source = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionscript-source"]
+        versionscript = Path(pyproject_toml["tool"]["version-pioneer"]["versionscript"])
+        versionfile_sdist = Path(
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-sdist"]
         )
-        versionfile_source = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
-        )
-        versionscript_code = versionscript_source.read_text()
+        versionscript_code = versionscript.read_text()
 
         # evaluate the original _version.py file to get the computed version
         module_globals = {}
@@ -57,10 +55,10 @@ class CustomPioneerBuildHook(BuildHookInterface):
         self.temp_version_file.flush()
 
         # make it executable
-        versionfile_build = Path(self.temp_version_file.name)
-        versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
+        versionfile_wheel = Path(self.temp_version_file.name)
+        versionfile_wheel.chmod(versionfile_wheel.stat().st_mode | stat.S_IEXEC)
 
-        build_data["force_include"][self.temp_version_file.name] = versionfile_source
+        build_data["force_include"][self.temp_version_file.name] = versionfile_sdist
 
     def finalize(
         self,

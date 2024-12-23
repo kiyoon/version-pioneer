@@ -77,9 +77,9 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 
 ```toml
 [tool.version-pioneer]
-versionscript-source = "src/my_project/_version.py"  # Where to "read" the Version-Pioneer script (to execute `get_version_dict()`).
-versionfile-source = "src/my_project/_version.py"  # Where to "write" the version string for sdist.
-versionfile-build = "my_project/_version.py"  # Where to "write" the version string for wheel.
+versionscript = "src/my_project/_version.py"  # Where to "read" the Version-Pioneer script (to execute `get_version_dict()`).
+versionfile-sdist = "src/my_project/_version.py"  # Where to "write" the version string for sdist.
+versionfile-wheel = "my_project/_version.py"  # Where to "write" the version string for wheel.
 ```
 
 2. Create `src/my_project/_version.py` with `get_version_dict()` in your project.
@@ -175,22 +175,6 @@ Voila! The version string is now dynamically generated from git tags, and the `_
 > Or simply copy-paste the [`src/version_pioneer/version_pioneer_core.py`](src/version_pioneer/version_pioneer_core.py) script to your project to remove the dependency
 > completely. This can be done with `version-pioneer install` or `version-pioneer print-script` CLI command.
 
-<!-- 2. Copy-paste [`src/version_pioneer/_version_pioneer.py`](src/version_pioneer/_version_pioneer.py) to your project. -->
-<!--     - You can use the CLI to install. Read [#version-pioneer-cli](#-version-pioneer-cli) section.   -->
-<!--     ```bash -->
-<!--     version-pioneer install-script -->
-<!--     ``` -->
-<!-- 3. Customise `_version_pioneer.py` to your needs. For example, style of the version string can be configured in `class VersionPioneerConfig`. -->
-<!-- 5. You can use the version string by importing from `_version_pioneer.py` or `_version.py` in your project. -->
-
-
-
-<!-- > [!TIP] -->
-<!-- > **Why would you consider including both the script and the generated constant version file in the distributed package?** -->
-<!-- > - It ensures consistency between development and distribution, simplifying the behavior for the dev. -->
-<!-- > - It eliminates concerns about complex logic when building a wheel, which can involve sequential builds (e.g., project -> sdist -> wheel), reducing potential bugs. -->
-<!-- > - Devs may want to import components like *type definitions*, *configuration*, etc., from the script. -->
-<!-- > - IT'S NOT MANDATORY; we still support replacing the script with the generated version file. Simply set `versionfile-source` to the same as `versionscript-source`. -->
 
 ### Usage (script vendored)
 
@@ -215,18 +199,18 @@ The idea is that the toml config just tells you where the script it, and the scr
 
 ### pyproject.toml [tool.version-pioneer]: Configuration for build backends and Version-Pioneer CLI. 
 
-- `versionscript-source`: Path to the version script to execute `get_version_dict()`. Usually it's the `_version.py` file in your project. 
-- `versionfile-source`: Path to save the resolved version file in the "sdist" build directory (e.g. `src/my_project/_version.py`)
-- `versionfile-build`: Path to the `_version.py` file in "wheel" build directory (e.g. `my_project/_version.py`)
+- `versionscript`: Path to the version script to execute `get_version_dict()`. Usually it's the `_version.py` file in your project. 
+- `versionfile-sdist`: Path to save the resolved version file in the "sdist" build directory (e.g. `src/my_project/_version.py`)
+- `versionfile-wheel`: Path to the `_version.py` file in "wheel" build directory (e.g. `my_project/_version.py`)
 
-When you build a source distribution (sdist), the `versionfile-source` gets replaced to a short constant file.
-When you build a wheel, the `versionfile-build` gets replaced to a short constant file.
+When you build a source distribution (sdist), the `versionfile-sdist` gets replaced to a short constant file.
+When you build a wheel, the `versionfile-wheel` gets replaced to a short constant file.
 
 > [!NOTE]
-> In hatchling backend, `versionfile-build` doesn't really get used, but I would still configure it for consistency.
+> In hatchling backend, `versionfile-wheel` doesn't really get used, but I would still configure it for consistency.
 
 > [!TIP]
-> Leave out the `versionfile-source` and/or `versionfile-build` setting if you don't want to write/replace the `_version.py` file in the build directory. 
+> Leave out the `versionfile-sdist` and/or `versionfile-wheel` setting if you don't want to write/replace the `_version.py` file in the build directory. 
 
 
 
@@ -332,8 +316,8 @@ expression = "get_version_dict()['version']"
 path = "hatch_build.py"
 
 [tool.version-pioneer]
-versionfile-source = "src/my_project/_version.py"
-versionfile-build = "my_project/_version.py"
+versionfile-sdist = "src/my_project/_version.py"
+versionfile-wheel = "my_project/_version.py"
 
 [project]
 name = "my-project"
@@ -376,10 +360,10 @@ class CustomPioneerBuildHook(BuildHookInterface):
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
         # evaluate the original _version.py file to get the computed version
-        versionfile_source = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-source"]
+        versionfile_sdist = Path(
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-sdist"]
         )
-        version_py = versionfile_source.read_text()
+        version_py = versionfile_sdist.read_text()
         module_globals = {}
         exec(version_py, module_globals)
 
@@ -403,11 +387,11 @@ class CustomPioneerBuildHook(BuildHookInterface):
         self.temp_version_file.flush()
 
         # make it executable
-        versionfile_build = Path(self.temp_version_file.name)
-        versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
+        versionfile_wheel = Path(self.temp_version_file.name)
+        versionfile_wheel.chmod(versionfile_wheel.stat().st_mode | stat.S_IEXEC)
 
         build_data["force_include"][self.temp_version_file.name] = Path(
-            pyproject_toml["tool"]["version-pioneer"]["versionfile-build"]
+            pyproject_toml["tool"]["version-pioneer"]["versionfile-wheel"]
         )
 
     def finalize(
@@ -441,8 +425,8 @@ build-backend = "pdm.backend"
 custom-hook = "pdm_build.py"
 
 [tool.version-pioneer]
-versionfile-source = "src/my_project/_version.py"
-versionfile-build = "my_project/_version.py"
+versionfile-sdist = "src/my_project/_version.py"
+versionfile-wheel = "my_project/_version.py"
 
 [project]
 name = "my-project"
@@ -461,22 +445,22 @@ from pdm.backend.hooks.base import Context
 
 def pdm_build_initialize(context: Context):
     # Update metadata version
-    versionfile_source = Path(
-        context.config.data["tool"]["version-pioneer"]["versionfile-source"]
+    versionfile_sdist = Path(
+        context.config.data["tool"]["version-pioneer"]["versionfile-sdist"]
     )
-    versionfile_code = versionfile_source.read_text()
+    versionfile_code = versionfile_sdist.read_text()
     version_module_globals = {}
     exec(versionfile_code, version_module_globals)
     context.config.metadata["version"] = version_module_globals["__version__"]
 
     # Write the static version file
     if context.target != "editable":
-        versionfile_build = context.build_dir / Path(
-            context.config.data["tool"]["version-pioneer"]["versionfile-build"]
+        versionfile_wheel = context.build_dir / Path(
+            context.config.data["tool"]["version-pioneer"]["versionfile-wheel"]
         )
         context.ensure_build_dir()
-        versionfile_build.parent.mkdir(parents=True, exist_ok=True)
-        versionfile_build.write_text(
+        versionfile_wheel.parent.mkdir(parents=True, exist_ok=True)
+        versionfile_wheel.write_text(
             textwrap.dedent(f"""
                 #!/usr/bin/env python3
                 # This file is generated by version-pioneer
@@ -492,7 +476,7 @@ def pdm_build_initialize(context: Context):
             """).strip()
         )
         # make it executable
-        versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
+        versionfile_wheel.chmod(versionfile_wheel.stat().st_mode | stat.S_IEXEC)
 ```
 
 ## 🚀 Version-Pioneer CLI
@@ -514,8 +498,8 @@ uv tool install 'version-pioneer[cli]'
 
 ```toml
 [tool.version-pioneer]
-versionfile-source = "src/my_project/_version.py"
-versionfile-build = "my_project/_version.py"
+versionfile-sdist = "src/my_project/_version.py"
+versionfile-wheel = "my_project/_version.py"
 ```
 
 2. `version-pioneer install` will copy-paste the `_version.py` to the path you specified, and append `__version__` to your `__init__.py`.
@@ -533,7 +517,7 @@ $ version-pioneer
  🧗 Version-Pioneer: Dynamically manage project version with hatchling and pdm support.
 
 ╭─ Commands ────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ install                 Install _version.py at `tool.version-pioneer.versionfile-source` in pyproject.toml.   │
+│ install                 Install _version.py at `tool.version-pioneer.versionfile-sdist` in pyproject.toml.   │
 │ print-version-py-code   Print the content of _version.py file (for manual installation).                      │
 │ exec-version-py         Resolve the _version.py file for build, and print the content.                        │
 │ get-version-builtin     WITHOUT using the _version.py file, get version with Version-Pioneer logic.           │

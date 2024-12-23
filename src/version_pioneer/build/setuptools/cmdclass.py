@@ -106,19 +106,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
             try:
-                versionfile_build: str = get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionfile-build"]
+                versionfile_wheel: str = get_toml_value(
+                    pyproject_toml, ["tool", "version-pioneer", "versionfile-wheel"]
                 )
             except KeyError:
                 pass
             else:
-                versionscript_source = pyproject_toml_file.parent / get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionscript-source"]
+                versionscript = pyproject_toml_file.parent / get_toml_value(
+                    pyproject_toml, ["tool", "version-pioneer", "versionscript"]
                 )
                 target_versionfile_content = exec_version_py(
-                    versionscript_source, output_format="python"
+                    versionscript, output_format="python"
                 )
-                target_versionfile = Path(self.build_lib) / versionfile_build
+                target_versionfile = Path(self.build_lib) / versionfile_wheel
                 print(f"UPDATING {target_versionfile}")
                 target_versionfile.write_text(target_versionfile_content)
 
@@ -143,19 +143,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
             try:
-                versionfile_build: str = get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionfile-build"]
+                versionfile_wheel: str = get_toml_value(
+                    pyproject_toml, ["tool", "version-pioneer", "versionfile-wheel"]
                 )
             except KeyError:
                 pass
             else:
-                versionscript_source = pyproject_toml_file.parent / get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionscript-source"]
+                versionscript = pyproject_toml_file.parent / get_toml_value(
+                    pyproject_toml, ["tool", "version-pioneer", "versionscript"]
                 )
                 target_versionfile_content = exec_version_py(
-                    versionscript_source, output_format="python"
+                    versionscript, output_format="python"
                 )
-                target_versionfile = Path(self.build_lib) / versionfile_build
+                target_versionfile = Path(self.build_lib) / versionfile_wheel
                 if not target_versionfile.exists():
                     print(
                         f"Warning: {target_versionfile} does not exist, skipping "
@@ -186,19 +186,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             def run(self) -> None:
                 pyproject_toml_file = find_pyproject_toml()
                 pyproject_toml = load_toml(pyproject_toml_file)
-                versionscript_source = pyproject_toml_file.parent / Path(
+                versionscript = pyproject_toml_file.parent / Path(
                     get_toml_value(
                         pyproject_toml,
-                        ["tool", "version-pioneer", "versionscript-source"],
+                        ["tool", "version-pioneer", "versionscript"],
                     )
                 )
                 # HACK: replace _version.py directly in the source tree during build, and restore it.
-                target_versionfile = versionscript_source
+                target_versionfile = versionscript
                 print(f"UPDATING {target_versionfile}")
                 target_versionfile_content = exec_version_py(
-                    versionscript_source, output_format="python"
+                    versionscript, output_format="python"
                 )
-                original_versionscript_content = versionscript_source.read_text()
+                original_versionscript_content = versionscript.read_text()
                 target_versionfile.write_text(target_versionfile_content)
 
                 _build_exe.run(self)
@@ -218,19 +218,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             def run(self) -> None:
                 pyproject_toml_file = find_pyproject_toml()
                 pyproject_toml = load_toml(pyproject_toml_file)
-                versionscript_source = pyproject_toml_file.parent / Path(
+                versionscript = pyproject_toml_file.parent / Path(
                     get_toml_value(
                         pyproject_toml,
-                        ["tool", "version-pioneer", "versionscript-source"],
+                        ["tool", "version-pioneer", "versionscript"],
                     )
                 )
                 # HACK: replace _version.py directly in the source tree during build, and restore it.
-                target_versionfile = versionscript_source
+                target_versionfile = versionscript
                 print(f"UPDATING {target_versionfile}")
                 target_versionfile_content = exec_version_py(
-                    versionscript_source, output_format="python"
+                    versionscript, output_format="python"
                 )
-                original_versionscript_content = versionscript_source.read_text()
+                original_versionscript_content = versionscript.read_text()
                 target_versionfile.write_text(target_versionfile_content)
 
                 _py2exe.run(self)
@@ -256,16 +256,16 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
 
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript_source = str(
+            versionscript = str(
                 get_toml_value(
                     pyproject_toml,
-                    ["tool", "version-pioneer", "versionscript-source"],
+                    ["tool", "version-pioneer", "versionscript"],
                 )
             )
 
-            # There are rare cases where versionscript_source might not be
+            # There are rare cases where versionscript might not be
             # included by default, so we must be explicit
-            self.filelist.append(versionscript_source)
+            self.filelist.append(versionscript)
 
             self.filelist.sort()
             self.filelist.remove_duplicates()
@@ -296,24 +296,24 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
         def run(self) -> None:
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript_source = Path(
+            versionscript = Path(
                 get_toml_value(
                     pyproject_toml,
-                    ["tool", "version-pioneer", "versionscript-source"],
+                    ["tool", "version-pioneer", "versionscript"],
                 )
             )
             try:
-                self.versionfile_source = Path(
+                self.versionfile_sdist = Path(
                     get_toml_value(
                         pyproject_toml,
-                        ["tool", "version-pioneer", "versionfile-source"],
+                        ["tool", "version-pioneer", "versionfile-sdist"],
                     )
                 )
             except KeyError:
-                self.versionfile_source = None
+                self.versionfile_sdist = None
 
             self.version_dict = exec_version_py_to_get_version_dict(
-                pyproject_toml_file.parent / versionscript_source
+                pyproject_toml_file.parent / versionscript
             )
             # unless we update this, the command will keep using the old
             # version
@@ -326,10 +326,10 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             # (remembering that it may be a hardlink) and replace it with an
             # updated value
 
-            if self.versionfile_source is None:
-                print("Skipping version update due to versionfile-source not set.")
+            if self.versionfile_sdist is None:
+                print("Skipping version update due to versionfile-sdist not set.")
             else:
-                target_versionfile = Path(base_dir) / self.versionfile_source
+                target_versionfile = Path(base_dir) / self.versionfile_sdist
                 print(f"UPDATING {target_versionfile}")
                 target_versionfile.write_text(
                     version_dict_to_str(self.version_dict, output_format="python")

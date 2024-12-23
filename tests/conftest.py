@@ -92,9 +92,9 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             [tool.hatch.build.hooks.version-pioneer]
 
             [tool.version-pioneer]
-            versionscript-source = "src/my_app/_version.py"
-            versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
+            versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_version.py"
+            versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -151,9 +151,9 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            versionscript-source = "src/my_app/_version.py"
-            versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
+            versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_version.py"
+            versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -213,9 +213,9 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             build-backend = "pdm.backend"
 
             [tool.version-pioneer]
-            versionscript-source = "src/my_app/_version.py"
-            versionfile-source = "src/my_app/_version.py"
-            versionfile-build = "my_app/_version.py"
+            versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_version.py"
+            versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"

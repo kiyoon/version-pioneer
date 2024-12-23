@@ -13,14 +13,14 @@ from version_pioneer.utils.toml import get_toml_value
 class VersionPioneerBuildHook:
     def pdm_build_initialize(self, context: Context):
         # Update metadata version
-        versionscript_source = Path(
+        versionscript = Path(
             get_toml_value(
-                context.config.data, ["tool", "version-pioneer", "versionscript-source"]
+                context.config.data, ["tool", "version-pioneer", "versionscript"]
             )
         )
-        version_dict = exec_version_py_to_get_version_dict(versionscript_source)
+        version_dict = exec_version_py_to_get_version_dict(versionscript)
 
-        # versionscript_code = versionscript_source.read_text()
+        # versionscript_code = versionscript.read_text()
         # version_module_globals = {}
         # exec(versionscript_code, version_module_globals)
         # version_dict = version_module_globals["get_version_dict"]()
@@ -31,29 +31,29 @@ class VersionPioneerBuildHook:
         if context.target != "editable":
             try:
                 if context.target == "wheel":
-                    versionfile_build = context.build_dir / Path(
+                    versionfile = context.build_dir / Path(
                         get_toml_value(
                             context.config.data,
-                            ["tool", "version-pioneer", "versionfile-build"],
+                            ["tool", "version-pioneer", "versionfile-wheel"],
                         )
                     )
                 elif context.target == "sdist":
-                    versionfile_build = context.build_dir / Path(
+                    versionfile = context.build_dir / Path(
                         get_toml_value(
                             context.config.data,
-                            ["tool", "version-pioneer", "versionfile-source"],
+                            ["tool", "version-pioneer", "versionfile-sdist"],
                         )
                     )
                 else:
                     raise ValueError(f"Unsupported target: {context.target}")
             except KeyError as e:
-                print(str(e))  # Missing versionfile-source/build in pyproject.toml
+                print(str(e))  # Missing versionfile-sdist/build in pyproject.toml
                 print("Skipping writing a constant version file")
             else:
                 context.ensure_build_dir()
-                versionfile_build.parent.mkdir(parents=True, exist_ok=True)
-                versionfile_build.write_text(
+                versionfile.parent.mkdir(parents=True, exist_ok=True)
+                versionfile.write_text(
                     version_dict_to_str(version_dict, output_format="python")
                 )
                 # make it executable
-                versionfile_build.chmod(versionfile_build.stat().st_mode | stat.S_IEXEC)
+                versionfile.chmod(versionfile.stat().st_mode | stat.S_IEXEC)

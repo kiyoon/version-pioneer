@@ -41,9 +41,9 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            # versionscript-source = "src/my_app/_version.py"
-            # versionfile-source = "src/my_app/_version.py"
-            # versionfile-build = "my_app/_version.py"
+            # versionscript = "src/my_app/_version.py"
+            # versionfile-sdist = "src/my_app/_version.py"
+            # versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -54,7 +54,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
         in err
     ), err
 
@@ -65,9 +65,9 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            # versionscript-source = "src/my_app/_version.py"
-            versionfile-source = "src/my_app/_version.py"
-            # versionfile-build = "my_app/_version.py"
+            # versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_version.py"
+            # versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -79,17 +79,17 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
     err = build_project(check=False)
 
     assert (
-        "KeyError: 'Missing key tool.version-pioneer.versionscript-source in pyproject.toml'"
+        "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
         in err
     ), err
 
 
 @pytest.mark.xfail(raises=VersionPyResolutionError)
-def test_no_versionfile_source_and_build(
+def test_no_versionfile_sdist_nor_wheel(
     new_setuptools_project: Path, plugin_wheel: Path
 ):
     """
-    If versionfile-source and versionfile-build is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    If versionfile-sdist and versionfile-wheel is not configured, the build does NOT FAIL but the _version.py file is not updated.
     """
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_setuptools_project, check=True)
@@ -106,9 +106,9 @@ def test_no_versionfile_source_and_build(
             build-backend = "setuptools.build_meta"
 
             [tool.version-pioneer]
-            versionscript-source = "src/my_app/_version.py"
-            # versionfile-source = "src/my_app/_version.py"
-            # versionfile-build = "my_app/_version.py"
+            versionscript = "src/my_app/_version.py"
+            # versionfile-sdist = "src/my_app/_version.py"
+            # versionfile-wheel = "my_app/_version.py"
 
             [project]
             name = "my-app"
@@ -117,7 +117,7 @@ def test_no_versionfile_source_and_build(
         """),
     )
 
-    # Can't use dynamic versioning without versionfile-build.
+    # Can't use dynamic versioning without versionfile-wheel.
     setup_py = new_setuptools_project / "setup.py"
     setup_py.write_text(
         textwrap.dedent("""

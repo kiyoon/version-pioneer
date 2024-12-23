@@ -31,36 +31,34 @@ class VersionPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
-        versionscript_source = Path(
-            get_toml_value(
-                pyproject_toml, ["tool", "version-pioneer", "versionscript-source"]
-            )
+        versionscript = Path(
+            get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionscript"])
         )
 
         # evaluate the original _version.py file to get the computed version
         # replace the file with the constant version
         try:
-            # In hatchling, versionfile-build setting doesn't get used.
-            # Instead, the versionfile-source needs to be used to locate the build _version.py file.
-            versionfile_source = Path(
+            # In hatchling, versionfile-wheel setting doesn't get used.
+            # Instead, the versionfile-sdist needs to be used to locate the build _version.py file.
+            versionfile_sdist = Path(
                 get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionfile-source"]
+                    pyproject_toml, ["tool", "version-pioneer", "versionfile-sdist"]
                 )
             )
         except KeyError:
-            print("No versionfile-source specified in pyproject.toml")
+            print("No versionfile-sdist specified in pyproject.toml")
             print("Skipping writing a constant version file")
         else:
-            # if versionfile_build != str(versionfile_source):
+            # if versionfile_wheel != str(versionfile_sdist):
             #     raise ValueError(
-            #         "For hatchling backend, versionfile-build must be the same as versionfile-source. "
-            #         "Or set versionfile-build to None to skip replacing the _version.py file."
-            #         f"Got {versionfile_build} and {versionfile_source}"
+            #         "For hatchling backend, versionfile-wheel must be the same as versionfile-sdist. "
+            #         "Or set versionfile-wheel to None to skip replacing the _version.py file."
+            #         f"Got {versionfile_wheel} and {versionfile_sdist}"
             #     )
 
             self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
             version_dict = exec_version_py_code_to_get_version_dict(
-                versionscript_source.read_text()
+                versionscript.read_text()
             )
             self.temp_version_file.write(
                 version_dict_to_str(version_dict, output_format="python")
@@ -73,9 +71,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
                 versionfile_build_temp.stat().st_mode | stat.S_IEXEC
             )
 
-            build_data["force_include"][self.temp_version_file.name] = (
-                versionfile_source
-            )
+            build_data["force_include"][self.temp_version_file.name] = versionfile_sdist
 
     def finalize(
         self,
