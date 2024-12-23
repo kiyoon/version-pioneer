@@ -73,15 +73,13 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 
 ## 🏃 Quick Start (script not vendored, with build backend plugins)
 
-For `setuptools`, `hatchling` and `pdm-backend`, you can configure using the provided plugins. Below section describe how they work, so you can customise the behaviour by making your own hook as well, if you wish!
-
 1. Configure `pyproject.toml`. `[tool.version-pioneer]` section is required.
 
 ```toml
 [tool.version-pioneer]
-versionscript-source = "src/my_project/_version.py"  # Where to read the Version-Pioneer script (to execute `get_version_dict(*args, **kargs)`).
-versionfile-source = "src/my_project/_version.py"  # Where to write the version string for sdist.
-versionfile-build = "my_project/_version.py"  # Where to write the version string for wheel.
+versionscript-source = "src/my_project/_version.py"  # Where to "read" the Version-Pioneer script (to execute `get_version_dict()`).
+versionfile-source = "src/my_project/_version.py"  # Where to "write" the version string for sdist.
+versionfile-build = "my_project/_version.py"  # Where to "write" the version string for wheel.
 ```
 
 2. Create `src/my_project/_version.py` with `get_version_dict()` in your project.
@@ -145,7 +143,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "code"
-path = "src/my_project/_version.py"  # Instaed of using __init__.py, calling _version.py is easier because it is designed to be executed standalone.
+path = "src/my_project/_version.py"
 expression = "get_version_dict()['version']"
 
 [tool.hatch.build.hooks.version-pioneer]
@@ -196,7 +194,11 @@ Voila! The version string is now dynamically generated from git tags, and the `_
 
 ### Usage (script vendored)
 
-Remember one rule: the `_version.py` file must contain `get_version_dict()` function that returns a dictionary with a "version" key.
+If you don't want to add a dev dependency, you can simply vendor the script in your project.
+
+Copy-paste the entire `src/version_pioneer/version_pioneer_core.py` to your project, use it as is or customise it to your needs.
+
+If you choose to modify the scripy, remember one rule: the `_version.py` file must contain `get_version_dict()` function that returns a dictionary with a "version" key. (more precisely, the `VersionDict` type in the script.)
 
 ```python
 # Valid _version.py
@@ -205,50 +207,32 @@ def get_version_dict():
     return { "version": version, ... }
 ```
 
-That means, you can copy-paste the entire `src/version_pioneer/version_pioneer_core.py` to your project, use it as is or customise it to your needs.
-
-```python
-# src/version_pioneer/version_pioneer_core.py, pseudo code
-
-class VersionPioneerConfig:
-    style: VersionStyle = VersionStyle.pep440
-    tag_prefix: str = "v"
-    parentdir_prefix: Optional[str] = None
-    verbose: bool = False
-
-# ...
-
-def get_version_dict():
-    # Run `git describe`, parse the output, and return the version string.
-    ...
-```
-
 ## 🛠️ Configuration
 
-Unlike Versioneer, the configuration is located in two places: `pyproject.toml` and `src/my_project/_version.py`. This is to make it less confusing, because in Versioneer, most of the pyproject.toml config is actually useless once you install `_version.py` in your project.
+Unlike Versioneer, the configuration is located in two places: `pyproject.toml` and `src/my_project/_version.py`. This is to make it less confusing, because in Versioneer, most of the pyproject.toml config were actually useless once you install `_version.py` in your project.
+
+The idea is that the toml config just tells you where the script it, and the script has everything it needs. 
 
 ### pyproject.toml [tool.version-pioneer]: Configuration for build backends and Version-Pioneer CLI. 
 
-- `versionfile-source`: Path to the `_version.py` file in your project, and "sdist" build directory (e.g. `src/my_project/_version.py`)
+- `versionscript-source`: Path to the version script to execute `get_version_dict()`. Usually it's the `_version.py` file in your project. 
+- `versionfile-source`: Path to save the resolved version file in the "sdist" build directory (e.g. `src/my_project/_version.py`)
 - `versionfile-build`: Path to the `_version.py` file in "wheel" build directory (e.g. `my_project/_version.py`)
 
 When you build a source distribution (sdist), the `versionfile-source` gets replaced to a short constant file.
 When you build a wheel, the `versionfile-build` gets replaced to a short constant file.
 
 > [!NOTE]
-> In hatchling backend, `versionfile-build` must be set to the same as `versionfile-source`.
-> Their build system is apparently more consistent between the two types.
+> In hatchling backend, `versionfile-build` doesn't really get used, but I would still configure it for consistency.
 
 > [!TIP]
-> Leave out the `versionfile-build` setting if you don't want to replace the `_version.py` file in the build directory.
-> This applies not only to "wheel" builds but also to "sdist" builds to maintain consistent build results,
-> even though "sdist" builds do not actually use the `versionfile-build` setting (they replace the `versionfile-source` file).
+> Leave out the `versionfile-source` and/or `versionfile-build` setting if you don't want to write/replace the `_version.py` file in the build directory. 
 
 
-The idea is that it just tells you where it is, and the other configs should be parsed directly from `_version.py`.
 
 ### `_version.py`: Configuration for resolving the version string.
 
+You can modify the config in the script. 
 This file has to be able to run like a script without any other dependencies (like package, files, config, etc.).
 
 ```python
@@ -278,20 +262,7 @@ It's important to understand how Version-Pioneer works, so you can customise it 
 
 ### Basic: _version.py as a script
 
-The core functionality is in one file: [`_version.py`](src/version_pioneer/_version.py). This code is either used as a script (`python _version.py`) that prints a json of all useful information, or imported as a module (`from _version import __version__`), depending on your needs. The code looks something like this:
-
-```python
-# pseudo code of _version.py, original.
-def get_version_dict():
-    # Some logic to get the version string from git.
-    # Read the source code. You can easily understand and customise it.
-    ...
-
-if __name__ == "__main__":
-    import json
-
-    print(json.dumps(get_version_dict()))
-```
+The core functionality is in one file: [`version_pioneer_core.py`](src/version_pioneer/version_pioneer_core.py). Let's download and rename the file to _version.py to avoid confusion. This code is either used as a script (`python _version.py`) that prints a json of all useful information, or imported as a module (`from _version import get_version_dict`), depending on your needs.
 
 Run it in your project to see what it prints. Change git tags, commit, and see how it changes.
 
