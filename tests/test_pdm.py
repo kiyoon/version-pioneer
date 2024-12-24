@@ -32,6 +32,38 @@ def test_build_version(new_pdm_project: Path):
     assert_build_and_version_persistence(new_pdm_project)
 
 
+def test_different_versionfile(new_pdm_project: Path, plugin_wheel: Path):
+    # Reset the project to a known state.
+    subprocess.run(["git", "stash", "--all"], cwd=new_pdm_project, check=True)
+    subprocess.run(["git", "checkout", "v0.1.0"], cwd=new_pdm_project, check=True)
+
+    pyp = new_pdm_project / "pyproject.toml"
+
+    pyp.write_text(
+        textwrap.dedent(f"""
+            [build-system]
+            requires = ["pdm-backend", "version-pioneer @ {plugin_wheel.as_uri()}"]
+            build-backend = "pdm.backend"
+
+            [tool.version-pioneer]
+            versionscript = "src/my_app/_version.py"
+            versionfile-sdist = "src/my_app/_versionfile.py"
+            versionfile-wheel = "my_app/_versionfile.py"
+
+            [project]
+            name = "my-app"
+            dynamic = ["version"]
+            requires-python = ">=3.8"
+        """),
+    )
+
+    subprocess.run(["git", "add", "."], check=True)
+    subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
+    subprocess.run(["git", "tag", "v0.1.1"], check=True)
+
+    assert_build_consistency(cwd=new_pdm_project, version="0.1.1")
+
+
 def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
     """
     Missing config makes the build fail with a meaningful error message.

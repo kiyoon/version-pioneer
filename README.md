@@ -142,9 +142,7 @@ requires = ["hatchling", "version-pioneer"]
 build-backend = "hatchling.build"
 
 [tool.hatch.version]
-source = "code"
-path = "src/my_project/_version.py"
-expression = "get_version_dict()['version']"
+source = "version-pioneer"
 
 [tool.hatch.build.hooks.version-pioneer]
 # section is empty because we read config from `[tool.version-pioneer]` section.
@@ -159,7 +157,7 @@ requires = ["pdm-backend", "version-pioneer"]
 build-backend = "pdm.backend"
 ```
 
-Voila! The version string is now dynamically generated from git tags, and the `_version.py` file is replaced with a constant version string when building a wheel or source distribution.
+Voilà! The version string is now dynamically generated from git tags, and the `_version.py` file is replaced with a constant version string when building a wheel or source distribution.
 
 > [!TIP]
 > The `_version.py` gets replaced to a constant version file when you build your package, so `version-pioneer` shouldn't be in your package dependencies.

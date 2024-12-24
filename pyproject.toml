@@ -8,10 +8,8 @@ files = ["deps/requirements.in"]
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 cli = ["deps/requirements-cli.in"]
 
-[tool.hatch.version]
-source = "code"
-path = "src/version_pioneer/version_pioneer_core.py"
-expression = "get_version_dict()['version']"
+[tool.hatch.metadata.hooks.custom]
+path = "hatch_build.py"
 
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"

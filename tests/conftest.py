@@ -85,9 +85,7 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             build-backend = "hatchling.build"
 
             [tool.hatch.version]
-            source = "code"
-            path = "src/my_app/_version.py"
-            expression = "get_version_dict()['version']"
+            source = "version-pioneer"
 
             [tool.hatch.build.hooks.version-pioneer]
 
