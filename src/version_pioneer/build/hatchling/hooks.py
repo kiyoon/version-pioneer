@@ -10,7 +10,7 @@ from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.plugin import hookimpl
 
 from version_pioneer.utils.exec_version_script import (
-    exec_version_script_code_to_get_version_dict,
+    exec_version_script,
     version_dict_to_str,
 )
 from version_pioneer.utils.toml import get_toml_value, load_toml
@@ -57,9 +57,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
             #     )
 
             self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
-            version_dict = exec_version_script_code_to_get_version_dict(
-                versionscript.read_text()
-            )
+            version_dict = exec_version_script(versionscript.read_text())
             self.temp_version_file.write(
                 version_dict_to_str(version_dict, output_format="python")
             )

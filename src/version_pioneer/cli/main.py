@@ -25,6 +25,7 @@ import rich
 from rich.prompt import Confirm
 from rich.syntax import Syntax
 
+from version_pioneer.template import INIT_PY, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
 from version_pioneer.utils.exec_version_script import ResolutionFormat
 from version_pioneer.version_pioneer_core import VersionStyle
@@ -62,7 +63,7 @@ def common(
 
 @app.command()
 def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
-    """Install _version.py at `tool.version-pioneer.versionfile-sdist` in pyproject.toml."""
+    """Add _version.py, modify __init__.py and maybe setup.py."""
     from version_pioneer.api import get_version_script_core_code
     from version_pioneer.utils.toml import (
         find_pyproject_toml,
@@ -70,40 +71,80 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
         load_toml,
     )
 
+    def _write_file_with_diff_confirm(file: Path, content: str):
+        if file.exists():
+            existing_content = file.read_text()
+            if existing_content.strip() == content.strip():
+                rich.print(f"[green]File already exists:[/green] {file} (no changes)")
+                sys.exit(2)
+
+            unified_diff = unidiff_output(existing_content, content)
+            rich.print(
+                Syntax(unified_diff, "diff", line_numbers=True, theme="lightbulb")
+            )
+            print()
+
+            confirm = Confirm.ask(
+                f"File [green]{file}[/green] already exists. [red]Overwrite?[/red]",
+                default=False,
+            )
+            if not confirm:
+                rich.print("[red]Aborted.[/red]")
+                sys.exit(1)
+
+        file.write_text(content)
+        rich.print(f"[green]File written:[/green] {file}")
+
     pyproject_toml_file = find_pyproject_toml(project_dir)
     pyproject_toml = load_toml(pyproject_toml_file)
 
     project_dir = pyproject_toml_file.parent
-    version_py_file = project_dir / Path(
-        get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionfile-sdist"])
+    version_script_file = project_dir / Path(
+        get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionscript"])
     )
-    if version_py_file.exists():
-        current_version_py_code = version_py_file.read_text()
-        package_version_py_code = get_version_script_core_code()
-        if current_version_py_code.strip() == package_version_py_code.strip():
-            rich.print(
-                f"[green]File already exists:[/green] {version_py_file} (no changes)"
-            )
-            sys.exit(2)
 
-        unified_diff = unidiff_output(current_version_py_code, package_version_py_code)
-        rich.print(Syntax(unified_diff, "diff", line_numbers=True, theme="lightbulb"))
-        print()
+    _write_file_with_diff_confirm(version_script_file, get_version_script_core_code())
 
+    # Modify __init__.py
+    init_py_file = version_script_file.parent / "__init__.py"
+    if not init_py_file.exists():
+        init_py_file.write_text(INIT_PY)
+        rich.print(f"[green]{init_py_file} added with content:[/green]")
+        print(INIT_PY)
+    else:
+        init_py_content = init_py_file.read_text()
+        if INIT_PY not in init_py_content:
+            init_py_file.write_text(INIT_PY + "\n\n" + init_py_content)
+            rich.print(f"[green]{init_py_file} modified with[/green]")
+            print(INIT_PY)
+            rich.print("[green]at the top![/green]")
+
+    # Using setuptools.build_meta backend?
+    try:
+        build_backend = get_toml_value(
+            pyproject_toml, ["build-system", "build-backend"]
+        )
+    except KeyError:
         confirm = Confirm.ask(
-            f"File [green]{version_py_file}[/green] already exists. [red]Overwrite?[/red]",
+            "Are you using setuptools.build_meta backend? Install setup.py?",
             default=False,
         )
-        if not confirm:
-            rich.print("[red]Aborted.[/red]")
-            sys.exit(1)
 
-    version_py_file.write_text(get_version_script_core_code())
-    rich.print(f"[green]File written:[/green] {version_py_file}")
+        if confirm:
+            build_backend = "setuptools.build_meta"
+        else:
+            build_backend = None
+
+    if build_backend is not None and build_backend == "setuptools.build_meta":
+        # install setup.py
+        setup_py_file = project_dir / "setup.py"
+        _write_file_with_diff_confirm(setup_py_file, SETUP_PY)
+
+    rich.print("[green]Installation completed![/green]")
 
 
 @app.command()
-def print_orig_version_py_code():
+def print_version_script_code():
     """Print the content of _version.py file (for manual installation)."""
     from version_pioneer.api import get_version_script_core_code
 
@@ -112,14 +153,18 @@ def print_orig_version_py_code():
 
 @app.command()
 def exec_version_script(
-    project_dir_or_version_py_file: Annotated[Optional[Path], typer.Argument()] = None,
+    project_dir_or_version_script_file: Annotated[
+        Optional[Path], typer.Argument()
+    ] = None,
     output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """Resolve the _version.py file for build, and print the content."""
     from version_pioneer.api import exec_version_script
 
     print(
-        exec_version_script(project_dir_or_version_py_file, output_format=output_format)
+        exec_version_script(
+            project_dir_or_version_script_file, output_format=output_format
+        )
     )
 
 

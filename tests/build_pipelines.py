@@ -22,7 +22,7 @@ from tests.utils import (
 )
 from version_pioneer.api import get_version_script_core_code
 from version_pioneer.utils.exec_version_script import (
-    exec_version_script_code_to_get_version_dict,
+    exec_version_script_code,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,9 +123,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     # actually evaluate the version
     logger.info(f"Resolved _version.py code: {resolved_version_py}")
-    version_after_tag: str = exec_version_script_code_to_get_version_dict(
-        resolved_version_py
-    )["version"]
+    version_after_tag: str = exec_version_script_codet(resolved_version_py)["version"]
     logger.info(f"Version after tag: {version_after_tag}")
 
     assert version_after_tag == "0.1.0"
@@ -180,9 +178,9 @@ def assert_build_and_version_persistence(project_dir: Path):
     verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code_to_get_version_dict(
-        resolved_version_py
-    )["version"]
+    version_after_commit_resolved = exec_version_script_code(resolved_version_py)[
+        "version"
+    ]
     logger.info(f"Version after commit (resolved): {version_after_commit_resolved}")
 
     assert dynamic_version == version_after_commit_resolved
@@ -227,9 +225,9 @@ def assert_build_and_version_persistence(project_dir: Path):
     verify_resolved_version_py(resolved_version_py)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code_to_get_version_dict(
-        resolved_version_py
-    )["version"]
+    version_after_commit_resolved = exec_version_script_code(resolved_version_py)[
+        "version"
+    ]
     logger.info(
         f"Version after commit and unstaged changes (resolved): {version_after_commit_resolved}"
     )

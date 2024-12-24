@@ -64,7 +64,7 @@ def exec_version_script(
             print(json.dumps(get_version_dict()))
     """
     from version_pioneer.utils.exec_version_script import (
-        exec_version_script_to_get_version_dict,
+        exec_version_script,
         find_version_script_from_project_dir,
     )
 
@@ -77,7 +77,7 @@ def exec_version_script(
             project_dir_or_version_py_file
         )
 
-    version_dict = exec_version_script_to_get_version_dict(version_py_file)
+    version_dict = exec_version_script(version_py_file)
     return version_dict_to_str(version_dict, output_format)
 
 

@@ -8,7 +8,7 @@ from typing import Any
 
 from version_pioneer.api import exec_version_script
 from version_pioneer.utils.exec_version_script import (
-    exec_version_script_to_get_version_dict,
+    exec_version_script,
     find_version_script_from_project_dir,
     version_dict_to_str,
 )
@@ -58,9 +58,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             pass
 
         def run(self) -> None:
-            vers = exec_version_script_to_get_version_dict(
-                find_version_script_from_project_dir()
-            )
+            vers = exec_version_script(find_version_script_from_project_dir())
             print(f"Version: {vers['version']}")
             print(f" full-revisionid: {vers['full_revisionid']}")
             print(f" dirty: {vers['dirty']}")
@@ -312,7 +310,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             except KeyError:
                 self.versionfile_sdist = None
 
-            self.version_dict = exec_version_script_to_get_version_dict(
+            self.version_dict = exec_version_script(
                 pyproject_toml_file.parent / versionscript
             )
             # unless we update this, the command will keep using the old
