@@ -163,10 +163,10 @@ def exec_version_script(
     output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """Resolve the _version.py file for build, and print the content."""
-    from version_pioneer.api import exec_version_script
+    from version_pioneer.api import exec_version_script_and_convert
 
     print(
-        exec_version_script(
+        exec_version_script_and_convert(
             project_dir_or_version_script_file, output_format=output_format
         )
     )

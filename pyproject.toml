@@ -57,11 +57,11 @@ version-pioneer = "version_pioneer.build.hatchling.hooks"
 [project.entry-points."pdm.build.hook"]
 version-pioneer = "version_pioneer.build.pdm.hooks:VersionPioneerBuildHook"
 
-[tool.projector.pip_compile]
+[tool.projector.pip-compile]
 # https://github.com/deargen/workflows/blob/master/python-projector
-requirements_in_dir = "deps"
-requirements_out_dir = "deps/lock"
-python_platforms = ["x86_64-manylinux_2_28", "aarch64-apple-darwin", "x86_64-apple-darwin"]
+requirements-in-dir = "deps"
+requirements-out-dir = "deps/lock"
+python-platforms = ["x86_64-manylinux_2_28", "aarch64-apple-darwin", "x86_64-apple-darwin"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=version_pioneer" # CHANGE (name of the importing module name)
