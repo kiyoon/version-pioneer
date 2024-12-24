@@ -5,7 +5,7 @@ import logging
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Literal, TypeVar
+from typing import Any, Literal, TypeVar
 
 from version_pioneer import template
 from version_pioneer.utils.toml import (
@@ -31,14 +31,47 @@ RESOLUTION_FORMAT_TYPE = TypeVar(
 )
 
 
+def find_version_script_from_pyproject_toml_dict(
+    pyproject_toml_dict: dict[str, Any],
+    *,
+    either_versionfile_or_versionscript: bool = True,
+):
+    versionscript: Path | None = get_toml_value(
+        pyproject_toml_dict,
+        ["tool", "version-pioneer", "versionscript"],
+        return_path_object=True,
+    )
+
+    if versionscript is None:
+        # NOTE: even if we end up loading versionfile-sdist, we still need to check the valid config.
+        raise KeyError(
+            "Missing key tool.version-pioneer.versionscript in pyproject.toml"
+        )
+
+    if either_versionfile_or_versionscript:
+        versionfile: Path | None = get_toml_value(
+            pyproject_toml_dict,
+            ["tool", "version-pioneer", "versionfile-sdist"],
+            return_path_object=True,
+        )
+        if versionfile is not None and versionfile.exists():
+            return versionfile
+
+    if not versionscript.exists():
+        raise FileNotFoundError(f"Version script not found: {versionscript}")
+
+    return versionscript
+
+
 def find_version_script_from_project_dir(
     project_dir: str | PathLike | None = None,
     *,
-    either_versionfile_or_versionscript: bool = False,
+    either_versionfile_or_versionscript: bool = True,
 ):
     """
     Args:
         either_versionfile_or_versionscript: If True, return either versionfile-sdist if it exists, else versionscript.
+            This is important because in sdist build, the versionfile is already evaluated and git tags are not available.
     """
     if project_dir is None:
         project_dir = Path.cwd()
@@ -51,30 +84,10 @@ def find_version_script_from_project_dir(
     pyproject_toml_file = find_pyproject_toml(project_dir)
     pyproject_toml = load_toml(pyproject_toml_file)
 
-    if either_versionfile_or_versionscript:
-        versionfile: Path | None = get_toml_value(
-            pyproject_toml,
-            ["tool", "version-pioneer", "versionfile-sdist"],
-            return_path_object=True,
-        )
-        if versionfile is not None and versionfile.exists():
-            return versionfile
-
-    versionscript: Path | None = get_toml_value(
+    return pyproject_toml_file.parent / find_version_script_from_pyproject_toml_dict(
         pyproject_toml,
-        ["tool", "version-pioneer", "versionscript"],
-        return_path_object=True,
+        either_versionfile_or_versionscript=either_versionfile_or_versionscript,
     )
-
-    if versionscript is None:
-        raise ValueError(
-            "tool.version-pioneer.versionscript not found in pyproject.toml"
-        )
-
-    if not versionscript.exists():
-        raise FileNotFoundError(f"Version script not found: {versionscript}")
-
-    return versionscript
 
 
 def exec_version_script_code(version_script_code: str) -> VersionDict:
@@ -95,7 +108,7 @@ def exec_version_script(
     return exec_version_script_code(code)
 
 
-def version_dict_to_str(
+def convert_version_dict(
     version_dict: VersionDict,
     output_format: RESOLUTION_FORMAT_TYPE,
 ) -> str:

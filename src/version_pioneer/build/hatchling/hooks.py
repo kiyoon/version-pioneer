@@ -9,11 +9,12 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.plugin import hookimpl
 
-from version_pioneer.utils.exec_version_script import (
-    exec_version_script,
-    version_dict_to_str,
-)
 from version_pioneer.utils.toml import get_toml_value, load_toml
+from version_pioneer.utils.version_script import (
+    convert_version_dict,
+    exec_version_script,
+    find_version_script_from_project_dir,
+)
 
 
 class VersionPioneerBuildHook(BuildHookInterface):
@@ -31,35 +32,28 @@ class VersionPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
-        versionscript = Path(
-            get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionscript"])
+        # This also checks the valid config, so run it first.
+        versionscript = find_version_script_from_project_dir(
+            project_dir=Path(self.root),
+            either_versionfile_or_versionscript=True,
         )
 
-        # evaluate the original _version.py file to get the computed version
-        # replace the file with the constant version
-        try:
-            # In hatchling, versionfile-wheel setting doesn't get used.
-            # Instead, the versionfile-sdist needs to be used to locate the build _version.py file.
-            versionfile_sdist = Path(
-                get_toml_value(
-                    pyproject_toml, ["tool", "version-pioneer", "versionfile-sdist"]
-                )
-            )
-        except KeyError:
+        # In hatchling, versionfile-wheel setting doesn't get used.
+        # Instead, the versionfile-sdist needs to be used to locate the build _version.py file.
+        versionfile_sdist: Path | None = get_toml_value(
+            pyproject_toml,
+            ["tool", "version-pioneer", "versionfile-sdist"],
+            return_path_object=True,
+        )
+        if versionfile_sdist is None:
             print("No versionfile-sdist specified in pyproject.toml")
             print("Skipping writing a constant version file")
+            return
         else:
-            # if versionfile_wheel != str(versionfile_sdist):
-            #     raise ValueError(
-            #         "For hatchling backend, versionfile-wheel must be the same as versionfile-sdist. "
-            #         "Or set versionfile-wheel to None to skip replacing the _version.py file."
-            #         f"Got {versionfile_wheel} and {versionfile_sdist}"
-            #     )
-
             self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
-            version_dict = exec_version_script(versionscript.read_text())
+            version_dict = exec_version_script(versionscript)
             self.temp_version_file.write(
-                version_dict_to_str(version_dict, output_format="python")
+                convert_version_dict(version_dict, output_format="python")
             )
             self.temp_version_file.flush()
 

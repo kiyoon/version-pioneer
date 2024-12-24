@@ -27,7 +27,7 @@ from rich.syntax import Syntax
 
 from version_pioneer.template import INIT_PY, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
-from version_pioneer.utils.exec_version_script import ResolutionFormat
+from version_pioneer.utils.version_script import ResolutionFormat
 from version_pioneer.version_pioneer_core import VersionStyle
 
 if sys.version_info < (3, 9):
@@ -100,7 +100,11 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
 
     project_dir = pyproject_toml_file.parent
     version_script_file = project_dir / Path(
-        get_toml_value(pyproject_toml, ["tool", "version-pioneer", "versionscript"])
+        get_toml_value(
+            pyproject_toml,
+            ["tool", "version-pioneer", "versionscript"],
+            raise_error=True,
+        )
     )
 
     _write_file_with_diff_confirm(version_script_file, get_version_script_core_code())
@@ -122,7 +126,7 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
     # Using setuptools.build_meta backend?
     try:
         build_backend = get_toml_value(
-            pyproject_toml, ["build-system", "build-backend"]
+            pyproject_toml, ["build-system", "build-backend"], raise_error=True
         )
     except KeyError:
         confirm = Confirm.ask(

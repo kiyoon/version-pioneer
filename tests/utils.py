@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from version_pioneer.utils.exec_version_script import (
+from version_pioneer.utils.version_script import (
     exec_version_script,
     exec_version_script_code,
 )
