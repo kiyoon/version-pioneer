@@ -36,7 +36,7 @@ from dataclasses import dataclass
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Any, Optional, TypedDict
+from typing import Any, Literal, Optional, TypedDict, TypeVar
 
 
 class VersionStyle(str, Enum):
@@ -48,6 +48,22 @@ class VersionStyle(str, Enum):
     git_describe = "git_describe"
     git_describe_long = "git_describe_long"
     digits = "digits"
+
+
+VERSION_STYLE_TYPE = TypeVar(
+    "VERSION_STYLE_TYPE",
+    Literal[
+        "pep440",
+        "pep440_branch",
+        "pep440_pre",
+        "pep440_post",
+        "pep440_post_branch",
+        "git_describe",
+        "git_describe_long",
+        "digits",
+    ],
+    VersionStyle,
+)
 
 
 # ┌──────────────────────────────────────────┐

@@ -9,6 +9,7 @@ from version_pioneer.utils.version_script import (
     convert_version_dict,
 )
 from version_pioneer.version_pioneer_core import (
+    VERSION_STYLE_TYPE,
     VersionPioneerConfig,
     VersionStyle,
     get_version_dict_from_vcs,
@@ -78,10 +79,38 @@ def exec_version_script_and_convert(
     return convert_version_dict(version_dict, output_format)
 
 
-def get_version(
+def get_version_dict_wo_exec(
     cwd: Path | None = None,
     *,
-    style: VersionStyle = VersionStyle.pep440,
+    style: VERSION_STYLE_TYPE = VersionStyle.pep440,
+    tag_prefix: str = "v",
+    parentdir_prefix: str | None = None,
+):
+    """
+    WITHOUT using the installed _version.py file, get version with Version-Pioneer logic.
+
+    Useful when you don't need to customise the _version.py file, and you work in non-Python projects
+    so you don't care about re-evaluating the version file.
+
+    Args:
+        parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
+    """
+    cfg = VersionPioneerConfig(
+        style=VersionStyle(style),
+        tag_prefix=tag_prefix,
+        parentdir_prefix=parentdir_prefix,
+    )
+
+    version_dict = get_version_dict_from_vcs(
+        cfg, cwd=Path.cwd() if cwd is None else cwd
+    )
+    return version_dict
+
+
+def get_version_wo_exec_and_convert(
+    cwd: Path | None = None,
+    *,
+    style: VERSION_STYLE_TYPE = VersionStyle.pep440,
     tag_prefix: str = "v",
     parentdir_prefix: str | None = None,
     output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.version_string,
@@ -96,13 +125,12 @@ def get_version(
         project_dir: The root or child directory of the project.
         parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
     """
-    cfg = VersionPioneerConfig(
-        style=style,
-        tag_prefix=tag_prefix,
-        parentdir_prefix=parentdir_prefix,
+    return convert_version_dict(
+        get_version_dict_wo_exec(
+            cwd=cwd,
+            style=style,
+            tag_prefix=tag_prefix,
+            parentdir_prefix=parentdir_prefix,
+        ),
+        output_format,
     )
-
-    version_dict = get_version_dict_from_vcs(
-        cfg, cwd=Path.cwd() if cwd is None else cwd
-    )
-    return convert_version_dict(version_dict, output_format)

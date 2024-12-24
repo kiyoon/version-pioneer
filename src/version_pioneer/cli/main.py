@@ -173,7 +173,7 @@ def exec_version_script(
 
 
 @app.command()
-def get_version(
+def get_version_wo_exec(
     project_dir: Annotated[
         Optional[Path], typer.Argument(help="Git directory. Default is cwd")
     ] = None,
@@ -193,10 +193,10 @@ def get_version(
         project_dir: The root or child directory of the project.
         parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
     """
-    from version_pioneer.api import get_version
+    from version_pioneer.api import get_version_wo_exec_and_convert
 
     print(
-        get_version(
+        get_version_wo_exec_and_convert(
             project_dir,
             style=style,
             tag_prefix=tag_prefix,

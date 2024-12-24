@@ -56,18 +56,16 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
     ```python
     from pathlib import Path
 
-    from version_pioneer.vcs import get_version_dict_from_vcs, VersionPioneerConfig
+    from version_pioneer.api import get_version_dict_wo_exec
 
 
     def get_version_dict():
-        cfg = VersionPioneerConfig(
+        return get_version_dict_wo_exec(
+            cwd=Path(__file__).parent,
             style="pep440",
             tag_prefix="v",
             parentdir_prefix=None,
-            verbose=False,
         )
-
-        return get_version_dict_from_vcs(cfg, cwd=Path(__file__).parent)
     ```
 
 
@@ -497,7 +495,7 @@ $ version-pioneer
 │ install                 Add _version.py, modify __init__.py and maybe setup.py.   │
 │ print-version-script-code   Print the content of _version.py file (for manual installation).                      │
 │ exec-version-script         Resolve the _version.py file for build, and print the content.                        │
-│ get-version-builtin     WITHOUT using the _version.py file, get version with Version-Pioneer logic.           │
+│ get-version-wo-exec     WITHOUT using the _version.py file, get version with Version-Pioneer logic.           │
 ╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 
