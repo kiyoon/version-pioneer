@@ -1,4 +1,4 @@
-name: Commit CHANGELOG.md, create a Release and deploy MkDocs
+name: Commit CHANGELOG.md, create a Release
 
 on:
   workflow_dispatch:
