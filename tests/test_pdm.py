@@ -5,14 +5,15 @@ from pathlib import Path
 
 import pytest
 
+from version_pioneer.api import build_consistency_test
+from version_pioneer.utils.build import build_project
+
 from .build_pipelines import (
     assert_build_and_version_persistence,
-    assert_build_consistency,
     check_no_versionfile_output,
 )
 from .utils import (
-    VersionPyResolutionError,
-    build_project,
+    VersionScriptResolutionError,
 )
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def test_build_consistency(new_pdm_project: Path):
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_pdm_project, check=True)
     subprocess.run(["git", "checkout", "v0.1.0"], cwd=new_pdm_project, check=True)
-    assert_build_consistency(cwd=new_pdm_project)
+    build_consistency_test(project_dir=new_pdm_project)
 
 
 def test_build_version(new_pdm_project: Path):
@@ -61,7 +62,7 @@ def test_different_versionfile(new_pdm_project: Path, plugin_wheel: Path):
     subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
     subprocess.run(["git", "tag", "v0.1.1"], check=True)
 
-    assert_build_consistency(cwd=new_pdm_project, version="0.1.1")
+    build_consistency_test(project_dir=new_pdm_project, expected_version="0.1.1")
 
 
 def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
@@ -91,7 +92,7 @@ def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
         """),
     )
 
-    err = build_project(check=False)
+    err, _ = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
@@ -116,7 +117,7 @@ def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
         """),
     )
 
-    err = build_project(check=False)
+    err, _ = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
@@ -124,7 +125,7 @@ def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
     ), err
 
 
-@pytest.mark.xfail(raises=VersionPyResolutionError)
+@pytest.mark.xfail(raises=VersionScriptResolutionError)
 def test_no_versionfile_sdist(new_pdm_project: Path, plugin_wheel: Path):
     """
     If versionfile-sdist is not configured, the build does NOT FAIL but the _version.py file is not updated.

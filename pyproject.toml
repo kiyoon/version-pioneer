@@ -151,6 +151,7 @@ ignore = [
   "W291",    # Trailing whitespace
   "D10",     # Missing docstring in public module / function / etc.
   "D200",    # One-line docstring should fit on one line with quotes
+  "D205",    # 1 blank line required between summary line and description
   "D212",    # Multi-line docstring summary should start at the first line
   "D417",    # require documentation for every function parameter.
   "D401",    # require an imperative mood for all docstrings.
@@ -162,7 +163,9 @@ ignore = [
   "UP017",   # datetime.timezone.utc -> datetime.UTC
   "SIM108",  # use ternary operator instead of if-else
   "TRY003",  # long message in except
+  "TRY400",  # logger.exception instead of logger.error
   "PLR2004", # magic value comparison
+  "PLW2901"  # loop variable overwritten by assignment target
 ]
 
 [tool.ruff.lint.per-file-ignores]

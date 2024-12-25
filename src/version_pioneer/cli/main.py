@@ -206,6 +206,21 @@ def get_version_wo_exec(
     )
 
 
+@app.command()
+def build_consistency_test(
+    project_dir: Annotated[
+        Optional[Path], typer.Argument(help="Git directory. Default is cwd")
+    ] = None,
+    *,
+    delete_temp_dir: bool = True,
+):
+    from version_pioneer import setup_logging
+    from version_pioneer.api import build_consistency_test
+
+    setup_logging()
+    build_consistency_test(project_dir, delete_temp_dir=delete_temp_dir)
+
+
 def main():
     app()
 

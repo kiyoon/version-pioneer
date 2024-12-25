@@ -2,28 +2,43 @@ import logging
 import subprocess
 import textwrap
 from pathlib import Path
+from shutil import rmtree
 
 import pytest
 
 from tests.build_pipelines import (
     assert_build_and_version_persistence,
-    assert_build_consistency,
 )
 from tests.utils import (
-    VersionPyResolutionError,
+    VersionScriptResolutionError,
 )
+from version_pioneer.api import (
+    ChainingBuildVersionMismatchError,
+    VersionMismatchError,
+    build_consistency_test,
+)
+from version_pioneer.utils.build import build_project
 
 from .build_pipelines import check_no_versionfile_output
-from .utils import build_project
 
 logger = logging.getLogger(__name__)
 
 
 def test_build_consistency(new_setuptools_project: Path):
-    assert_build_consistency(cwd=new_setuptools_project)
+    # Reset the project to a known state.
+    subprocess.run(["git", "stash", "--all"], cwd=new_setuptools_project, check=True)
+    subprocess.run(
+        ["git", "checkout", "v0.1.0"], cwd=new_setuptools_project, check=True
+    )
+    build_consistency_test(project_dir=new_setuptools_project, expected_version="0.1.0")
 
 
 def test_build_version(new_setuptools_project: Path):
+    # Reset the project to a known state.
+    subprocess.run(["git", "stash", "--all"], cwd=new_setuptools_project, check=True)
+    subprocess.run(
+        ["git", "checkout", "v0.1.0"], cwd=new_setuptools_project, check=True
+    )
     assert_build_and_version_persistence(new_setuptools_project)
 
 
@@ -58,7 +73,7 @@ def test_different_versionfile(new_setuptools_project: Path, plugin_wheel: Path)
     subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
     subprocess.run(["git", "tag", "v0.1.1"], check=True)
 
-    assert_build_consistency(cwd=new_setuptools_project, version="0.1.1")
+    build_consistency_test(project_dir=new_setuptools_project, expected_version="0.1.1")
 
 
 def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
@@ -85,7 +100,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
         """),
     )
 
-    err = build_project(check=False)
+    err, _ = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
@@ -110,7 +125,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
         """),
     )
 
-    err = build_project(check=False)
+    err, _ = build_project(check=False)
 
     assert (
         "KeyError: 'Missing key tool.version-pioneer.versionscript in pyproject.toml'"
@@ -118,7 +133,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
     ), err
 
 
-@pytest.mark.xfail(raises=VersionPyResolutionError)
+@pytest.mark.xfail(raises=VersionScriptResolutionError)
 def test_no_versionfile_sdist_nor_wheel(
     new_setuptools_project: Path, plugin_wheel: Path
 ):
@@ -169,10 +184,21 @@ def test_no_versionfile_sdist_nor_wheel(
     subprocess.run(["git", "commit", "-m", "Second commit"], check=True)
     subprocess.run(["git", "tag", "v0.1.1"], check=True)
 
-    # The build should be consistent still, because we don't update for both sdist and wheel.
-    assert_build_consistency(version="0.1.1", cwd=new_setuptools_project)
-    # No need to build again. We check the _version.py file directly on sdist and wheel.
-    Path(new_setuptools_project / "dist-separated").rename(
-        new_setuptools_project / "dist"
+    # The build should be consistent still, because versionfile-sdist and versionfile-wheel are both not configured.
+
+    # NOTE: since we don't write the versionfile, we normally can't chain the tests.
+    # However, hatchling actually reads PKG-INFO metadata in the sdist,
+    # and if it's present, the version source is ignored.
+    # In setuptools, the `get_version_dict()` includes this logic.
+    temp_dir = build_consistency_test(
+        project_dir=new_setuptools_project,
+        test_chaining=True,
+        delete_temp_dir=False,
+        expected_version="0.1.1",
     )
+
+    # No need to build again. We check the _version.py file directly on sdist and wheel.
+    Path(temp_dir / "dist").rename(new_setuptools_project / "dist")
+    rmtree(temp_dir)
+
     check_no_versionfile_output(cwd=new_setuptools_project)

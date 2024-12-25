@@ -8,8 +8,7 @@ import pytest
 
 from version_pioneer.api import get_version_script_core_code
 from version_pioneer.template import SETUP_PY
-
-from .utils import build_project
+from version_pioneer.utils.build import build_project
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 os.environ["GIT_CONFIG_GLOBAL"] = str(SCRIPT_DIR / "gitconfig")
@@ -53,15 +52,9 @@ def _plugin_wheel():
     For example, it ensures _version.py and _version_orig.py are included in the wheel with different content.
     """
     with TemporaryDirectory() as d:
-        out = build_project("--out-dir", d)
-        # Find Successfully built *.whl
-        for line in out.splitlines():
-            if line.startswith("Successfully built"):
-                break
-        else:
-            raise RuntimeError("Failed to build plugin")
-
-        wheel_path = Path(line.split()[2])
+        out, builds = build_project("--out-dir", d)
+        assert len(builds) == 2
+        wheel_path = builds[1]
         if not wheel_path.is_absolute():
             # pyproject-build does not print absolute path
             wheel_path = Path(d) / wheel_path

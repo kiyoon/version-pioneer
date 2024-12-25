@@ -9,95 +9,20 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-from os import PathLike
 from pathlib import Path
 from shutil import rmtree
 
 from tests.utils import (
-    _are_dir_trees_equal,
-    build_project,
     get_dynamic_version,
-    run,
-    verify_resolved_version_py,
+    verify_resolved_versionfile,
 )
 from version_pioneer.api import get_version_script_core_code
+from version_pioneer.utils.build import build_project, unpack_wheel
 from version_pioneer.utils.version_script import (
     exec_version_script_code,
 )
 
 logger = logging.getLogger(__name__)
-
-
-def assert_build_consistency(version="0.1.0", cwd: str | PathLike | None = None):
-    """
-    The result of `build` can be different from running with --wheel and --sdist separately, so assure equality.
-
-    This is because (I assume) when building both wheel and sdist, it first generates sdist (which should include all
-    files necessary for the wheel), then builds the wheel from the sdist. If you build with `build --wheel` only, it
-    processes the files from the git project directory directly. Thus, it is likely that `build` (both) fails to include
-    version from git describe, while `build --wheel` does.
-
-    Also, the _version.py gets resolved twice, once for the sdist, and once for the wheel. This can result in different
-    outputs, thus we need to check the equality.
-    """
-    build_project("--wheel", "--out-dir", "dist-separated", cwd=cwd, check=True)
-    build_project("--sdist", "--out-dir", "dist-separated", cwd=cwd, check=True)
-    build_project("--out-dir", "dist-combined", cwd=cwd, check=True)
-
-    if cwd is None:
-        cwd = Path.cwd()
-    else:
-        cwd = Path(cwd)
-
-    # compare the contents of the wheels
-    separated = list((cwd / "dist-separated").glob("*.whl"))
-    combined = list((cwd / "dist-combined").glob("*.whl"))
-    assert len(separated) == 1
-    assert len(combined) == 1
-    separated = separated[0]
-    combined = combined[0]
-    assert separated.name == combined.name
-    # copy2(separated, "/Users/kiyoon/my_app-{version}-py3-none-any.whl")
-    # copy2(combined, "/Users/kiyoon/Downloads/my_app-{version}-py3-none-any.whl")
-
-    # assert separated.read_bytes() == combined.read_bytes()  # this doesn't work as I thought.
-    # The wheels can be different but the contents should be the same.
-    run("wheel", "unpack", separated, "--dest", "dist-separated")
-    run("wheel", "unpack", combined, "--dest", "dist-combined")
-    assert _are_dir_trees_equal(
-        cwd / f"dist-separated/my_app-{version}",
-        cwd / f"dist-combined/my_app-{version}",
-    )
-    rmtree(cwd / "dist-separated" / f"my_app-{version}")
-    rmtree(cwd / "dist-combined" / f"my_app-{version}")
-
-    # compare two directories
-
-    # compare the contents of the sdists
-    separated = list((cwd / "dist-separated").glob("*.tar.gz"))
-    combined = list((cwd / "dist-combined").glob("*.tar.gz"))
-    assert len(separated) == 1
-    assert len(combined) == 1
-    separated = separated[0]
-    combined = combined[0]
-    assert separated.name == combined.name
-    # copy2(separated, "/Users/kiyoon/my_app-{version}.tar.gz")
-    # copy2(combined, "/Users/kiyoon/Downloads/my_app-{version}.tar.gz")
-
-    # assert separated.read_bytes() == combined.read_bytes()  # this doesn't work as I thought.
-    # maybe the order of files in the tarball is different, so we can't compare the bytes directly.
-    subprocess.run(
-        ["tar", "-xzf", separated, "--directory", "dist-separated"], check=True
-    )
-    subprocess.run(
-        ["tar", "-xzf", combined, "--directory", "dist-combined"], check=True
-    )
-    assert _are_dir_trees_equal(
-        cwd / f"dist-separated/my_app-{version}",
-        cwd / f"dist-combined/my_app-{version}",
-    )
-    rmtree(cwd / "dist-separated" / f"my_app-{version}")
-    rmtree(cwd / "dist-combined" / f"my_app-{version}")
 
 
 def assert_build_and_version_persistence(project_dir: Path):
@@ -114,16 +39,16 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     assert whl.exists(), f"Build did not produce a correctly named wheel. Found: {os.listdir(project_dir / 'dist')}"
 
-    run("wheel", "unpack", whl)
+    unpack_wheel(whl)
 
-    resolved_version_py = (
+    resolved_versionfile = (
         project_dir / "my_app-0.1.0" / "my_app" / "_version.py"
     ).read_text()
-    verify_resolved_version_py(resolved_version_py)
+    verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
-    logger.info(f"Resolved _version.py code: {resolved_version_py}")
-    version_after_tag: str = exec_version_script_code(resolved_version_py)["version"]
+    logger.info(f"Resolved _version.py code: {resolved_versionfile}")
+    version_after_tag: str = exec_version_script_code(resolved_versionfile)["version"]
     logger.info(f"Version after tag: {version_after_tag}")
 
     assert version_after_tag == "0.1.0"
@@ -170,15 +95,15 @@ def assert_build_and_version_persistence(project_dir: Path):
     # logger.info(ps.stdout)
     assert whl.exists(), f"Build did not produce a correctly named wheel. Found: {os.listdir(project_dir / 'dist')}"
 
-    run("wheel", "unpack", whl)
+    unpack_wheel(whl)
 
-    resolved_version_py = (
+    resolved_versionfile = (
         project_dir / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
     ).read_text()
-    verify_resolved_version_py(resolved_version_py)
+    verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code(resolved_version_py)[
+    version_after_commit_resolved = exec_version_script_code(resolved_versionfile)[
         "version"
     ]
     logger.info(f"Version after commit (resolved): {version_after_commit_resolved}")
@@ -217,15 +142,15 @@ def assert_build_and_version_persistence(project_dir: Path):
     whl = project_dir / "dist" / f"my_app-{dynamic_version}-py3-none-any.whl"
     assert whl.exists(), f"Build did not produce a correctly named wheel. Found: {os.listdir(project_dir / 'dist')}"
 
-    run("wheel", "unpack", whl)
+    unpack_wheel(whl)
 
-    resolved_version_py = (
+    resolved_versionfile = (
         project_dir / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
     ).read_text()
-    verify_resolved_version_py(resolved_version_py)
+    verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code(resolved_version_py)[
+    version_after_commit_resolved = exec_version_script_code(resolved_versionfile)[
         "version"
     ]
     logger.info(
@@ -235,34 +160,37 @@ def assert_build_and_version_persistence(project_dir: Path):
     assert dynamic_version == version_after_commit_resolved
 
 
-def check_no_versionfile_output(cwd: Path, mode: str = "both"):
+def check_no_versionfile_output(*, cwd: Path, mode: str = "both", version="0.1.1"):
     """
-    Check when versionfile-sdist or versionfile-wheel is not set. Must be used with xfail(raise=VersionPyResolutionError).
+    Check when versionfile-sdist or versionfile-wheel is not set.
+
+    Note:
+        Must be used with xfail(raise=VersionScriptResolutionError).
 
     Assume dist/ exists and contains the built files.
     """
     if mode not in ("sdist", "wheel", "both"):
         raise ValueError(f"Invalid mode: {mode}")
     if mode in ("sdist", "both"):
-        sdist = cwd / "dist" / "my_app-0.1.1.tar.gz"
+        sdist = cwd / "dist" / f"my_app-{version}.tar.gz"
         assert sdist.exists()
         subprocess.run(["tar", "xzf", sdist], cwd=cwd / "dist", check=True)
-        unresolved_version_py = (
-            cwd / "dist" / "my_app-0.1.1" / "src" / "my_app" / "_version.py"
+        unresolved_versionscript = (
+            cwd / "dist" / f"my_app-{version}" / "src" / "my_app" / "_version.py"
         ).read_text()
-        assert unresolved_version_py == get_version_script_core_code()
-        verify_resolved_version_py(unresolved_version_py)  # expected to fail
+        assert unresolved_versionscript == get_version_script_core_code()
+        verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     if mode in ("wheel", "both"):
         # logger.info(list((cwd / "dist").glob("*")))
-        whl = cwd / "dist" / "my_app-0.1.1-py3-none-any.whl"
+        whl = cwd / "dist" / f"my_app-{version}-py3-none-any.whl"
 
         assert whl.exists()
 
-        run("wheel", "unpack", whl, "--dest", cwd / "dist")
+        unpack_wheel(whl, dest_dir=cwd / "dist")
 
-        unresolved_version_py = (
-            cwd / "dist" / "my_app-0.1.1" / "my_app" / "_version.py"
+        unresolved_versionscript = (
+            cwd / "dist" / f"my_app-{version}" / "my_app" / "_version.py"
         ).read_text()
-        assert unresolved_version_py == get_version_script_core_code()
-        verify_resolved_version_py(unresolved_version_py)  # expected to fail
+        assert unresolved_versionscript == get_version_script_core_code()
+        verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     rmtree(cwd / "dist")

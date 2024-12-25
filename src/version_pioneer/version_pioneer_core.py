@@ -33,6 +33,7 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
+from email.parser import Parser
 from enum import Enum
 from os import PathLike
 from pathlib import Path
@@ -732,6 +733,61 @@ def _versions_from_parentdir(
 #     }
 
 
+def get_version_from_pkg_info(cwd: "str | PathLike") -> VersionDict:
+    """
+    Parse PKG-INFO file if it exists, because it's the most reliable way
+    to get the version from an sdist (`build --sdist`)
+    since sdist would not have a git information.
+
+    This matters if you choose to "NOT" write the versionfile.
+
+    i.e. [tool.version-pioneer]
+         versionscript = src/my_package/_version.py
+         # versionfile-sdist = NOT DEFINED
+
+    Note:
+        - New in Version-Pioneer
+        - Hatchling's Version Source Plugin is deactivated when PKG-INFO is present, so this method would not matter.
+        - Only for other backends like setuptools.
+    """
+    try:
+        project_root = _find_root_dir_with_file(cwd, "PKG-INFO")
+    except FileNotFoundError:
+        raise NotThisMethodError("PKG-INFO not found")  # noqa: B904
+    else:
+        pyproject_toml = project_root / "pyproject.toml"
+        if not pyproject_toml.exists():
+            raise NotThisMethodError(
+                "PKG-INFO found but no pyproject.toml found in the project root"
+            )
+
+        # Confirm [tool.version-pioneer] section exists in pyproject.toml
+        with open(pyproject_toml) as f:
+            lines = f.readlines()
+        for line in lines:
+            if "[tool.version-pioneer]" in line:
+                break
+        else:
+            raise NotThisMethodError(
+                "[tool.version-pioneer] section not found in pyproject.toml"
+            )
+
+        # Read PKG-INFO file
+        with open(project_root / "PKG-INFO") as f:
+            pkg_info = Parser().parse(f)
+        pkg_version = pkg_info.get("Version")
+        if not pkg_version:
+            raise NotThisMethodError("Version not found in PKG-INFO")
+
+        return {
+            "version": pkg_version,
+            "full_revisionid": None,
+            "dirty": False,
+            "error": None,
+            "date": None,
+        }
+
+
 def get_version_dict_from_vcs(
     cfg: "VersionPioneerConfig | None" = None, *, cwd: "str | PathLike | None" = None
 ) -> VersionDict:
@@ -754,6 +810,11 @@ def get_version_dict_from_vcs(
     #     )
     # except NotThisMethodError:
     #     pass
+
+    try:
+        return get_version_from_pkg_info(cwd)
+    except NotThisMethodError:
+        pass
 
     try:
         return GitPieces.from_vcs(cfg.tag_prefix, cwd, verbose=cfg.verbose).render(
