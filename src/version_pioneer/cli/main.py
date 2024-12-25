@@ -150,8 +150,8 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
 
 
 @app.command()
-def print_version_script_code():
-    """Print the content of _version.py file (for manual installation)."""
+def print_versionscript_code():
+    """Print the content of _version.py (version_pioneer_core.py) file (for manual installation)."""
     from version_pioneer.api import get_version_script_core_code
 
     print(get_version_script_core_code())
