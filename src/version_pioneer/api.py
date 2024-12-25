@@ -3,13 +3,17 @@ from __future__ import annotations
 import subprocess
 import tempfile
 import textwrap
+from collections.abc import Sequence
 from os import PathLike
 from pathlib import Path
 from shutil import rmtree
 from typing import Literal, overload
 
-from version_pioneer.utils.diff import are_dir_trees_equal
-from version_pioneer.utils.toml import find_root_dir_with_file
+from version_pioneer.utils.files import (
+    are_dir_trees_equal,
+    find_root_dir_with_file,
+    remove_files_recusively,
+)
 from version_pioneer.utils.version_script import (
     RESOLUTION_FORMAT_TYPE,
     ResolutionFormat,
@@ -200,6 +204,7 @@ def build_consistency_test(
     delete_temp_dir: bool = True,
     test_chaining: bool = True,
     expected_version: str | None = None,
+    ignore_patterns: str | Sequence[str] = ("*.egg-info/SOURCES.txt"),
 ) -> Path | None:
     """
     Assure build equality with `build`, `build --wheel` and `build --sdist`,
@@ -212,12 +217,20 @@ def build_consistency_test(
 
     Also, the _version.py gets resolved twice, once for the sdist, and once for the wheel. This can result in different
     outputs, thus we need to check the equality.
+
+    Note:
+        - setuptools backend generates setup.cfg in the sdist, so *.egg-info/SOURCES.txt can be different.
+        - Other backends may generate different files, so you may need to add more ignore patterns.
     """
     import verboselogs
 
     from version_pioneer.utils.build import build_project, unpack_wheel
 
     logger = verboselogs.VerboseLogger(__name__)
+
+    ignore_patterns = (
+        [ignore_patterns] if isinstance(ignore_patterns, str) else ignore_patterns
+    )
 
     # Ensure command `uv` is available
     try:
@@ -290,10 +303,19 @@ def build_consistency_test(
     unpack_wheel(wheel_combined, temp_dir / "dist-combined")
     unpack_wheel(wheel_separate, temp_dir / "dist")
     dir_name = _get_wheel_package_name_and_version(wheel_combined)
-    assert are_dir_trees_equal(
-        temp_dir / "dist" / dir_name,
-        temp_dir / "dist-combined" / dir_name,
-    ), "❌ Wheel builds are not consistent."
+
+    remove_files_recusively(temp_dir / "dist" / dir_name, patterns=ignore_patterns)
+    remove_files_recusively(
+        temp_dir / "dist-combined" / dir_name, patterns=ignore_patterns
+    )
+    try:
+        are_dir_trees_equal(
+            temp_dir / "dist" / dir_name,
+            temp_dir / "dist-combined" / dir_name,
+        )
+    except FileNotFoundError as e:
+        raise FileNotFoundError("❌ Wheel builds are not consistent.") from e
+
     rmtree(temp_dir / "dist-combined" / dir_name)
     rmtree(temp_dir / "dist" / dir_name)
 
@@ -306,10 +328,19 @@ def build_consistency_test(
         ["tar", "-xzf", sdist_separate, "--directory", temp_dir / "dist-combined"],
         check=True,
     )
-    assert are_dir_trees_equal(
-        temp_dir / "dist" / dir_name,
-        temp_dir / "dist-combined" / dir_name,
-    ), "❌ sdist builds are not consistent."
+
+    remove_files_recusively(temp_dir / "dist" / dir_name, patterns=ignore_patterns)
+    remove_files_recusively(
+        temp_dir / "dist-combined" / dir_name, patterns=ignore_patterns
+    )
+    try:
+        are_dir_trees_equal(
+            temp_dir / "dist" / dir_name,
+            temp_dir / "dist-combined" / dir_name,
+        )
+    except FileNotFoundError as e:
+        raise FileNotFoundError("❌ sdist builds are not consistent.") from e
+
     rmtree(temp_dir / "dist-combined")
     # rmtree(temp_dir / "dist" / dir_name)
 
@@ -360,14 +391,21 @@ def build_consistency_test(
         )
         built_dir = temp_dir / "dist" / dir_name
 
-        assert are_dir_trees_equal(
-            built_dir,
-            temp_dir / "dist-chained" / dir_name,
-        ), (
-            "❌ Chained sdist build is not consistent with the non-chained build. "
-            f"original={built_dir}  "
-            f"chained={temp_dir / 'dist-chained' / dir_name}"
+        remove_files_recusively(built_dir, patterns=ignore_patterns)
+        remove_files_recusively(
+            temp_dir / "dist-chained" / dir_name, patterns=ignore_patterns
         )
+        try:
+            are_dir_trees_equal(
+                built_dir,
+                temp_dir / "dist-chained" / dir_name,
+            )
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                "❌ Chained sdist build is not consistent with the non-chained build. "
+                f"original={built_dir}  "
+                f"chained={temp_dir / 'dist-chained' / dir_name}"
+            ) from e
 
         logger.success("✅ Chained sdist builds are consistent.")
         rmtree(temp_dir / "dist-chained")
@@ -389,10 +427,21 @@ def build_consistency_test(
         rmtree(built_dir)
         unpack_wheel(wheel_separate, temp_dir / "dist")
         unpack_wheel(wheel_chained, temp_dir / "dist-chained")
-        assert are_dir_trees_equal(
-            built_dir,
-            temp_dir / "dist-chained" / dir_name,
-        ), "❌ Chained wheel build is not consistent with the non-chained build."
+
+        remove_files_recusively(built_dir, patterns=ignore_patterns)
+        remove_files_recusively(
+            temp_dir / "dist-chained" / dir_name, patterns=ignore_patterns
+        )
+        try:
+            are_dir_trees_equal(
+                built_dir,
+                temp_dir / "dist-chained" / dir_name,
+            )
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                "❌ Chained wheel build is not consistent with the non-chained build."
+            ) from e
+
         logger.success(
             "✅ sdist -> wheel chained build is consistent with the non-chained build."
         )

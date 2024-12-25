@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterable
 from os import PathLike
 from pathlib import Path
 from typing import Any
@@ -51,29 +50,12 @@ def get_toml_value(
     return value
 
 
-def find_root_dir_with_file(
-    source: str | PathLike, marker: str | Iterable[str]
-) -> Path:
-    """
-    Find the first parent directory containing a specific "marker", relative to a file path.
-    """
-    source = Path(source).resolve()
-    if isinstance(marker, str):
-        marker = {marker}
-
-    while source != source.parent:
-        if any((source / m).exists() for m in marker):
-            return source
-
-        source = source.parent
-
-    raise FileNotFoundError(f"File {marker} not found in any parent directory")
-
-
 def find_pyproject_toml(project_dir: str | PathLike | None = None) -> Path:
     """
     Find the pyproject.toml file in the current directory or any parent directory.
     """
+    from .files import find_root_dir_with_file
+
     if project_dir is None:
         project_dir = Path.cwd()
     return find_root_dir_with_file(project_dir, "pyproject.toml") / "pyproject.toml"
