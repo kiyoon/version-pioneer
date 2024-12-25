@@ -70,8 +70,10 @@ def find_version_script_from_project_dir(
 ):
     """
     Args:
-        either_versionfile_or_versionscript: If True, return either versionfile-sdist if it exists, else versionscript.
-            This is important because in sdist build, the versionfile is already evaluated and git tags are not available.
+        either_versionfile_or_versionscript: If True, return either versionfile-sdist if it exists,
+            else versionscript.
+            This is important because in sdist build, the versionfile is already evaluated
+            and git tags are not available.
     """
     if project_dir is None:
         project_dir = Path.cwd()

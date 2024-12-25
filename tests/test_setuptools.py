@@ -13,8 +13,6 @@ from tests.utils import (
     VersionScriptResolutionError,
 )
 from version_pioneer.api import (
-    ChainingBuildVersionMismatchError,
-    VersionMismatchError,
     build_consistency_test,
 )
 from version_pioneer.utils.build import build_project
@@ -138,7 +136,8 @@ def test_no_versionfile_sdist_nor_wheel(
     new_setuptools_project: Path, plugin_wheel: Path
 ):
     """
-    If versionfile-sdist and versionfile-wheel is not configured, the build does NOT FAIL but the _version.py file is not updated.
+    If versionfile-sdist and versionfile-wheel is not configured, the build does NOT FAIL
+    but the _version.py file is not updated.
     """
     # Reset the project to a known state.
     subprocess.run(["git", "stash", "--all"], cwd=new_setuptools_project, check=True)

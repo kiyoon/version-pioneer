@@ -7,8 +7,6 @@ from shutil import rmtree
 import pytest
 
 from version_pioneer.api import (
-    ChainingBuildVersionMismatchError,
-    VersionMismatchError,
     build_consistency_test,
 )
 from version_pioneer.utils.build import build_project

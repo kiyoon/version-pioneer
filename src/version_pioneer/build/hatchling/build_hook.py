@@ -21,8 +21,13 @@ class VersionPioneerBuildHook(BuildHookInterface):
 
     def initialize(self, version: str, build_data: dict[str, Any]) -> None:
         """
+        Execute either versionscript or versionfile-sdist and write to versionfile-sdist.
+
+        Note:
+            versionfile-wheel is not used for hatchling.
+
         Args:
-            version: editable, standard
+            version: editable, standard (note there's no separation from sdist and wheel)
         """
         self.temp_version_file = None
 

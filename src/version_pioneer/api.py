@@ -31,10 +31,6 @@ class VersionMismatchError(Exception):
     pass
 
 
-class ChainingBuildVersionMismatchError(Exception):
-    pass
-
-
 def get_version_script_core_code():
     """Get the content of version_pioneer_core.py file."""
     from version_pioneer import VERSION_PIONEER_CORE_FILE, __version__
@@ -76,7 +72,7 @@ def exec_version_script_and_convert(
             import json
 
             print(json.dumps(get_version_dict()))
-    """
+    """  # noqa: E501
     from version_pioneer.utils.version_script import (
         exec_version_script,
         find_version_script_from_project_dir,
@@ -175,7 +171,7 @@ def build_consistency_test(
     delete_temp_dir: Literal[True],
     test_chaining: bool = True,
     expected_version: str | None = None,
-    ignore_patterns: str | Sequence[str],
+    ignore_patterns: str | Sequence[str] = ("*.egg-info/SOURCES.txt"),
 ) -> None: ...
 
 
@@ -186,7 +182,7 @@ def build_consistency_test(
     delete_temp_dir: Literal[False],
     test_chaining: bool = True,
     expected_version: str | None = None,
-    ignore_patterns: str | Sequence[str],
+    ignore_patterns: str | Sequence[str] = ("*.egg-info/SOURCES.txt"),
 ) -> Path: ...
 
 
@@ -197,7 +193,7 @@ def build_consistency_test(
     delete_temp_dir: bool = True,
     test_chaining: bool = True,
     expected_version: str | None = None,
-    ignore_patterns: str | Sequence[str],
+    ignore_patterns: str | Sequence[str] = ("*.egg-info/SOURCES.txt"),
 ) -> Path | None: ...
 
 
@@ -228,6 +224,17 @@ def build_consistency_test(
     import verboselogs
 
     from version_pioneer.utils.build import build_project, unpack_wheel
+
+    def _compare_tmp_dirs(dir1: Path, dir2: Path, *, error_msg: str):
+        remove_files_recusively(dir1, patterns=ignore_patterns)
+        remove_files_recusively(dir2, patterns=ignore_patterns)
+        try:
+            are_dir_trees_equal(
+                dir1,
+                dir2,
+            )
+        except FileNotFoundError as e:
+            raise FileNotFoundError(error_msg) from e
 
     logger = verboselogs.VerboseLogger(__name__)
 
@@ -307,17 +314,11 @@ def build_consistency_test(
     unpack_wheel(wheel_separate, temp_dir / "dist")
     dir_name = _get_wheel_package_name_and_version(wheel_combined)
 
-    remove_files_recusively(temp_dir / "dist" / dir_name, patterns=ignore_patterns)
-    remove_files_recusively(
-        temp_dir / "dist-combined" / dir_name, patterns=ignore_patterns
+    _compare_tmp_dirs(
+        temp_dir / "dist" / dir_name,
+        temp_dir / "dist-combined" / dir_name,
+        error_msg="❌ Wheel builds are not consistent.",
     )
-    try:
-        are_dir_trees_equal(
-            temp_dir / "dist" / dir_name,
-            temp_dir / "dist-combined" / dir_name,
-        )
-    except FileNotFoundError as e:
-        raise FileNotFoundError("❌ Wheel builds are not consistent.") from e
 
     rmtree(temp_dir / "dist-combined" / dir_name)
     rmtree(temp_dir / "dist" / dir_name)
@@ -332,17 +333,11 @@ def build_consistency_test(
         check=True,
     )
 
-    remove_files_recusively(temp_dir / "dist" / dir_name, patterns=ignore_patterns)
-    remove_files_recusively(
-        temp_dir / "dist-combined" / dir_name, patterns=ignore_patterns
+    _compare_tmp_dirs(
+        temp_dir / "dist" / dir_name,
+        temp_dir / "dist-combined" / dir_name,
+        error_msg="❌ sdist builds are not consistent.",
     )
-    try:
-        are_dir_trees_equal(
-            temp_dir / "dist" / dir_name,
-            temp_dir / "dist-combined" / dir_name,
-        )
-    except FileNotFoundError as e:
-        raise FileNotFoundError("❌ sdist builds are not consistent.") from e
 
     rmtree(temp_dir / "dist-combined")
     # rmtree(temp_dir / "dist" / dir_name)
@@ -377,7 +372,7 @@ def build_consistency_test(
 
         sdist_chained_version = _get_wheel_package_version(sdist_chained)
         if expected_version != sdist_chained_version:
-            raise ChainingBuildVersionMismatchError(
+            raise VersionMismatchError(
                 f"❌ Versions are not consistent. {expected_version=}, {sdist_chained_version=}",
                 temp_dir,
             )
@@ -394,21 +389,13 @@ def build_consistency_test(
         )
         built_dir = temp_dir / "dist" / dir_name
 
-        remove_files_recusively(built_dir, patterns=ignore_patterns)
-        remove_files_recusively(
-            temp_dir / "dist-chained" / dir_name, patterns=ignore_patterns
+        _compare_tmp_dirs(
+            built_dir,
+            temp_dir / "dist-chained" / dir_name,
+            error_msg="❌ Chained sdist builds are not consistent with the non-chained build."
+            f"original={built_dir}  "
+            f"chained={temp_dir / 'dist-chained' / dir_name}",
         )
-        try:
-            are_dir_trees_equal(
-                built_dir,
-                temp_dir / "dist-chained" / dir_name,
-            )
-        except FileNotFoundError as e:
-            raise FileNotFoundError(
-                "❌ Chained sdist build is not consistent with the non-chained build. "
-                f"original={built_dir}  "
-                f"chained={temp_dir / 'dist-chained' / dir_name}"
-            ) from e
 
         logger.success("✅ Chained sdist builds are consistent.")
         rmtree(temp_dir / "dist-chained")
@@ -431,19 +418,13 @@ def build_consistency_test(
         unpack_wheel(wheel_separate, temp_dir / "dist")
         unpack_wheel(wheel_chained, temp_dir / "dist-chained")
 
-        remove_files_recusively(built_dir, patterns=ignore_patterns)
-        remove_files_recusively(
-            temp_dir / "dist-chained" / dir_name, patterns=ignore_patterns
+        _compare_tmp_dirs(
+            built_dir,
+            temp_dir / "dist-chained" / dir_name,
+            error_msg="❌ Chained wheel build is not consistent with the non-chained build."
+            f"original={built_dir}  "
+            f"chained={temp_dir / 'dist-chained' / dir_name}",
         )
-        try:
-            are_dir_trees_equal(
-                built_dir,
-                temp_dir / "dist-chained" / dir_name,
-            )
-        except FileNotFoundError as e:
-            raise FileNotFoundError(
-                "❌ Chained wheel build is not consistent with the non-chained build."
-            ) from e
 
         logger.success(
             "✅ sdist -> wheel chained build is consistent with the non-chained build."

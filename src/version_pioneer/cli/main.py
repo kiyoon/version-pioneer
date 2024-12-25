@@ -215,9 +215,9 @@ def build_consistency_test(
     delete_temp_dir: bool = True,
     expected_version: Optional[str] = None,
     test_chaining: bool = True,
-    ignore_patterns: Annotated[List[str], typer.Option("--ignore-pattern", "-i")] = [
+    ignore_patterns: Annotated[List[str], typer.Option("--ignore-pattern", "-i")] = [  # noqa: B006
         "*.egg-info/SOURCES.txt"
-    ],  # noqa: B006
+    ],
 ):
     """
     Check if builds are consistent with sdist, wheel, both, sdist -> sdist.
