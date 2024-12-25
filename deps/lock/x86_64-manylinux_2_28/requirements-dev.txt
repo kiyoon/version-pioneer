@@ -6,6 +6,8 @@ click==8.1.8
     # via typer
 coverage==7.6.1
     # via pytest-cov
+docstring-parser==0.16
+    # via -r requirements-cli.in
 exceptiongroup==1.2.2
     # via pytest
 hatchling==1.27.0
@@ -69,7 +71,11 @@ typing-extensions==4.12.2
     #   -r requirements-cli.in
     #   rich
     #   typer
+verboselogs==1.7
+    # via -r requirements-cli.in
 wheel==0.45.1
-    # via -r requirements-dev.in
+    # via
+    #   -r requirements-cli.in
+    #   -r requirements-dev.in
 zipp==3.20.2
     # via importlib-metadata

@@ -19,7 +19,7 @@ except ModuleNotFoundError:
 
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 import rich
 from rich.prompt import Confirm
@@ -29,6 +29,8 @@ from version_pioneer.template import INIT_PY, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
 from version_pioneer.utils.version_script import ResolutionFormat
 from version_pioneer.version_pioneer_core import VersionStyle
+
+from .docstring import from_docstring
 
 if sys.version_info < (3, 9):
     from typing_extensions import Annotated
@@ -173,10 +175,9 @@ def exec_version_script(
 
 
 @app.command()
+@from_docstring
 def get_version_wo_exec(
-    project_dir: Annotated[
-        Optional[Path], typer.Argument(help="Git directory. Default is cwd")
-    ] = None,
+    project_dir: Annotated[Optional[Path], typer.Argument()] = None,
     *,
     style: VersionStyle = VersionStyle.pep440,
     tag_prefix: str = "v",
@@ -190,7 +191,7 @@ def get_version_wo_exec(
     so you don't care about re-evaluating the version file.
 
     Args:
-        project_dir: The root or child directory of the project.
+        project_dir: The root or child directory of the project. Default is cwd.
         parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
     """
     from version_pioneer.api import get_version_wo_exec_and_convert
@@ -207,18 +208,40 @@ def get_version_wo_exec(
 
 
 @app.command()
+@from_docstring
 def build_consistency_test(
-    project_dir: Annotated[
-        Optional[Path], typer.Argument(help="Git directory. Default is cwd")
-    ] = None,
+    project_dir: Annotated[Optional[Path], typer.Argument()] = None,
     *,
     delete_temp_dir: bool = True,
+    expected_version: Optional[str] = None,
+    test_chaining: bool = True,
+    ignore_patterns: Annotated[List[str], typer.Option("--ignore-pattern", "-i")] = [
+        "*.egg-info/SOURCES.txt"
+    ],  # noqa: B006
 ):
+    """
+    Check if builds are consistent with sdist, wheel, both, sdist -> sdist.
+
+    Args:
+        project_dir: The root or child directory of the project. Default is cwd.
+        expected_version: Check if it builds to the expected version (without tag prefix).
+        ignore_patterns: List of patterns to ignore when seeing diff of directory.
+        test_chaining: Test sdist -> sdist chaining.
+            Note that some build backends may produce different results.
+            For example, setuptools produces setup.cfg in the first build,
+            so the second result will have one more file in the SOURCES.txt list.
+    """
     from version_pioneer import setup_logging
     from version_pioneer.api import build_consistency_test
 
     setup_logging()
-    build_consistency_test(project_dir, delete_temp_dir=delete_temp_dir)
+    build_consistency_test(
+        project_dir,
+        delete_temp_dir=delete_temp_dir,
+        test_chaining=test_chaining,
+        expected_version=expected_version,
+        ignore_patterns=ignore_patterns,
+    )
 
 
 def main():

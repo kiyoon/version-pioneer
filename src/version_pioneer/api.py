@@ -175,6 +175,7 @@ def build_consistency_test(
     delete_temp_dir: Literal[True],
     test_chaining: bool = True,
     expected_version: str | None = None,
+    ignore_patterns: str | Sequence[str],
 ) -> None: ...
 
 
@@ -185,6 +186,7 @@ def build_consistency_test(
     delete_temp_dir: Literal[False],
     test_chaining: bool = True,
     expected_version: str | None = None,
+    ignore_patterns: str | Sequence[str],
 ) -> Path: ...
 
 
@@ -195,6 +197,7 @@ def build_consistency_test(
     delete_temp_dir: bool = True,
     test_chaining: bool = True,
     expected_version: str | None = None,
+    ignore_patterns: str | Sequence[str],
 ) -> Path | None: ...
 
 
