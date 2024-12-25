@@ -580,12 +580,36 @@ $ version-pioneer test-build-consistency
 
 ### Build chaining problem
 
-It's good to note that, if your project chains building (project -> sdist -> wheel), which is a default behaviour of pyproject-build, the version may have some problem.
+It's good to note that, chaining building (project -> sdist -> sdist -> wheel) may result in different version strings if not configured correctly. We take the following strategy to make it consistent:
 
-- If you configured `versionscript` and `versionfile-sdist` to the same file, it could be replaced multiple times and still produce the same version dictionary.
-- If you configured `versionscript` and `versionfile-sdist` to different files, the first building will succeed. However, the next will overwrite the destination file to a wrong version.
+1. `versionfile-sdist` is evaluated first, if it exists.
 
-Therefore, we don't re-write the file (if they are different). `versionfile-sdist` takes precedence over `versionscript`, if it exists for resolving version.
+Most of the time your `versionscript` and `versionfile-sdist` would be the same. But for some reason you choose to have a seaparate file,
+and imagine if we execute the versionscript again in a built sdist. It may produce a different version string because now we don't have git information.
+
+Therefore, `versionfile-sdist` takes precedence (if it exists) over `versionscript`, for resolving version.
+
+
+2. Each backend works differently.
+
+**Setuptools**:
+
+- If `setup.cfg` doesn't exist, the sdist build will generate the file.
+    - Thus, if you build sdist from sdist, the `*.egg-info/SOURCES.txt` will contain `setup.cfg` so the result is slightly different.
+- `version_pioneer.build.setuptools.get_version()` finds the PKG-INFO to look up the version.
+    - It's the function you used in `setup(version=get_version())`.
+    - Building from sdist wouldn't look at git tags, but the `PKG-INFO` file. So the version string is consistent after multiple builds.
+
+**Hatchling**:
+
+- Once sdist is built, the PKG-INFO is present, and hatchling's version source plugin is ignored.
+
+**PDM Backend**:
+
+- Building with pdm removes `dynamic = ["version"]` from `pyproject.toml`'s `[project]` section.
+    - Instead, the `version="0.1.0"` (whatever it is during the build) is written.
+- However, the build hook can still change the metadata version, thus the versionfile / versionscript is still executed.
+    - It will be the versionfile that is already resolved, so the version string is consistent.
 
 ## 🚧 Development
 
