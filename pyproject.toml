@@ -22,9 +22,9 @@ versionfile-wheel = "version_pioneer/_version.py"
 [project]
 name = "version-pioneer"
 dynamic = ["version", "dependencies", "optional-dependencies"]
-description = "Easy VCS-based management of project version strings, with any build backend (setuptools, hatchling etc.) and any programming language support."
+description = "VCS-based project version management for any build backend (setuptools, hatchling, pdm) extensible to any programming language."
 authors = [
-  { name = "Kiyoon Kim" }, # OPTIONALLY CHANGE
+  { name = "Kiyoon Kim" },
 ]
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -61,10 +61,10 @@ version-pioneer = "version_pioneer.build.pdm.hooks:VersionPioneerBuildHook"
 # https://github.com/deargen/workflows/blob/master/python-projector
 requirements-in-dir = "deps"
 requirements-out-dir = "deps/lock"
-python-platforms = ["x86_64-manylinux_2_28", "aarch64-apple-darwin", "x86_64-apple-darwin"]
+python-platforms = ["x86_64-manylinux_2_17", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=version_pioneer" # CHANGE (name of the importing module name)
+addopts = "--cov=version_pioneer"
 testpaths = ["tests"]
 
 log_cli = true
@@ -72,8 +72,7 @@ log_cli_level = "INFO"
 
 [tool.coverage.report]
 omit = [
-  "src/version_pioneer/_version.py", # CHANGE
-  # OPTIONALLY ADD MORE LATER
+  "src/version_pioneer/_version.py",
 ]
 
 [tool.pyright]

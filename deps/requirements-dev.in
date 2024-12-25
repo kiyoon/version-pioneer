@@ -3,7 +3,7 @@
 
 pytest
 pytest-coverage
-build
+# build
 wheel
 
 # these are intentionally put in dev requirements because users only use one of the backends,
