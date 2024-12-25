@@ -409,7 +409,7 @@ def build_consistency_test(
 
         wheel_chained_version = _get_wheel_package_version(wheel_chained)
         if expected_version != wheel_chained_version:
-            raise ChainingBuildVersionMismatchError(
+            raise VersionMismatchError(
                 f"❌ Versions are not consistent. {expected_version=}, {wheel_chained_version=}",
                 temp_dir,
             )

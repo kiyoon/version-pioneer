@@ -50,8 +50,8 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
 
     class CmdVersion(Command):
         description = "report generated version string"
-        user_options: list[tuple[str, str, str]] = []
-        boolean_options: list[str] = []
+        user_options: list[tuple[str, str, str]] = []  # noqa: RUF012
+        boolean_options: list[str] = []  # noqa: RUF012
 
         def initialize_options(self) -> None:
             pass
