@@ -28,7 +28,10 @@ VERSION_PIONEER_CORE_FILE = Path(VERSION_PIONEER_CORE_FILE).resolve()
 @lru_cache
 def pkg_is_editable():
     direct_url = Distribution.from_name(PACKAGE_NAME).read_text("direct_url.json")
-    assert direct_url is not None
+    if direct_url is None:
+        # package is not installed at all
+        # I would consider this as editable
+        return True
     return json.loads(direct_url).get("dir_info", {}).get("editable", False)
 
 
