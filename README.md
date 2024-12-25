@@ -1,7 +1,5 @@
 # 🧗🏽 Version-Pioneer: General-Purpose Versioneer for Any Build Backends
 
-![build](https://github.com/kiyoon/version-pioneer/actions/workflows/deploy.yml/badge.svg)
-
 [![image](https://img.shields.io/pypi/v/version-pioneer.svg)](https://pypi.python.org/pypi/version-pioneer)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/version-pioneer)](https://pypistats.org/packages/version-pioneer)
 [![image](https://img.shields.io/pypi/l/version-pioneer.svg)](https://pypi.python.org/pypi/version-pioneer)
