@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.0.4] - 2024-12-25
+### :sparkles: New Features
+- [`a91d2cf`](https://github.com/kiyoon/version-pioneer/commit/a91d2cf0606ea137226960bf85108e3302bf4dc0) - --no-vendor installation *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v0.0.3] - 2024-12-25
 ### :bug: Bug Fixes
 - [`9bcce0b`](https://github.com/kiyoon/version-pioneer/commit/9bcce0bdcef71295f58e7c199b126f5e96766bc5) - __file__ NameError *(commit by [@kiyoon](https://github.com/kiyoon))*
@@ -25,3 +30,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.0.1]: https://github.com/kiyoon/version-pioneer/compare/v0.0.0...v0.0.1
 [v0.0.2]: https://github.com/kiyoon/version-pioneer/compare/v0.0.1...v0.0.2
 [v0.0.3]: https://github.com/kiyoon/version-pioneer/compare/v0.0.2...v0.0.3
+[v0.0.4]: https://github.com/kiyoon/version-pioneer/compare/v0.0.3...v0.0.4
