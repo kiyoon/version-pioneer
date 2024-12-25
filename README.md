@@ -482,6 +482,8 @@ versionfile-wheel = "my_project/_version.py"
 
 If you are using setuptools backend, it will also create a `setup.py` file for you.
 
+You can set `--no-vendor` option to import `version_pioneer` as a module to reduce the boilerplate code in your project. (This adds a dev dependency to your project.)
+
 
 ### `version-pioneer exec-version-script`: Resolve _version.py and get the version
 
@@ -509,24 +511,26 @@ if __name__ == "__main__":
     print(json.dumps(__version_dict__))
 ```
 
-### `version-pioneer get-version`: Get version without using _version.py
+### `version-pioneer get-version-wo-exec`: Get version without using _version.py
 
 This is useful when you want to get the version string without evaluating the `_version.py` file, like your project is probably not Python.
 
 It's the same as running the `version_pioneer_core.py` script (unchanged, not the vendored one), but with more options.
 
 ```console
-$ version-pioneer get-version
+$ version-pioneer get-version-wo-exec
 0.1.0+8.g6228bc4.dirty
 
-$ version-pioneer get-version --output-format json
+$ version-pioneer get-version-wo-exec --output-format json
 {"version": "0.1.0+8.g6228bc4.dirty", "full_revisionid": "6228bc46e14cfc4e238e652e56ccbf3f2cb1e91f", "dirty": true, "error": null, "date": "2024-12-21T21:03:48+0900"}
 
-$ version-pioneer get-version --style digits
+$ version-pioneer get-version-wo-exec --style digits
 0.1.0.9
 ```
 
-### `version-pioneer test-build-consistency`: Test build consistency
+### `version-pioneer build-consistency-test`: Test build consistency
+
+Useful to check if you have configured Version-Pioneer correctly. It builds the project with `uv build`, `uv build --sdist`, `uv build --wheel`, and checks if the version strings and the package content are consistent. Also it builds sdist from sdist and perform the check.
 
 ```console
 $ version-pioneer build-consistency-test

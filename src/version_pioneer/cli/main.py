@@ -25,7 +25,7 @@ import rich
 from rich.prompt import Confirm
 from rich.syntax import Syntax
 
-from version_pioneer.template import INIT_PY, SETUP_PY
+from version_pioneer.template import INIT_PY, NO_VENDOR_VERSIONSCRIPT, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
 from version_pioneer.utils.version_script import ResolutionFormat
 from version_pioneer.version_pioneer_core import VersionStyle
@@ -64,8 +64,19 @@ def common(
 
 
 @app.command()
-def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
-    """Add _version.py, modify __init__.py and maybe setup.py."""
+@from_docstring
+def install(
+    project_dir: Annotated[Optional[Path], typer.Argument()] = None,
+    *,
+    vendor: bool = True,
+):
+    """
+    Add _version.py, modify __init__.py and maybe setup.py.
+
+    Args:
+        project_dir: The root or child directory of the project. Default is cwd.
+        vendor: Install the full versionscript. --no-vendor to import from version_pioneer.
+    """
     from version_pioneer.api import get_version_script_core_code
     from version_pioneer.utils.toml import (
         find_pyproject_toml,
@@ -109,7 +120,12 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
         )
     )
 
-    _write_file_with_diff_confirm(version_script_file, get_version_script_core_code())
+    if vendor:
+        _write_file_with_diff_confirm(
+            version_script_file, get_version_script_core_code()
+        )
+    else:
+        _write_file_with_diff_confirm(version_script_file, NO_VENDOR_VERSIONSCRIPT)
 
     # Modify __init__.py
     init_py_file = version_script_file.parent / "__init__.py"
@@ -119,7 +135,11 @@ def install(project_dir: Annotated[Optional[Path], typer.Argument()] = None):
         print(INIT_PY)
     else:
         init_py_content = init_py_file.read_text()
-        if INIT_PY not in init_py_content:
+        init_py_template_lines = [line for line in INIT_PY.splitlines() if line.strip()]
+        # if all lines exists in the init_py_content
+        if all(line in init_py_content for line in init_py_template_lines):
+            print("__init__.py already configured. Not modifying.")
+        else:
             init_py_file.write_text(INIT_PY + "\n\n" + init_py_content)
             rich.print(f"[green]{init_py_file} modified with[/green]")
             print(INIT_PY)
