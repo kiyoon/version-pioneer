@@ -60,25 +60,6 @@ def _version_pioneer_version():
 __version__ = _version_pioneer_version()
 
 
-# def get_version_dict_from_vcs(
-#     cfg: VersionPioneerConfig, cwd: str | PathLike | None = None
-# ):
-#     """
-#     Get the version dictionary from the VCS.
-#
-#     Override the method to use the current working directory by default, not the package __file__ directory.
-#     Because if used as non-vendored, the version is resolved from this Version-Pioneer package, not the package using it.
-#
-#     It is still highly recommended to pass the package directory (cwd=Path(__file__).parent) to avoid any confusion.
-#     """
-#     from .version_pioneer_core import get_version_dict_from_vcs
-#
-#     if cwd is None:
-#         cwd = Path.cwd()
-#
-#     return get_version_dict_from_vcs(cfg, cwd=cwd)
-
-
 def setup_logging(
     console_level: int | str = logging.INFO,
     log_dir: str | PathLike | None = None,

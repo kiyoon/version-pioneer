@@ -12,14 +12,19 @@ Note:
     - This file is usually located at `src/my_package/_version.py`.
     - `src/my_package/__init__.py` should define `__version__ = get_version_dict()["version"]` from this file.
     - It should also be able to be run as a script to print the version info in json format.
-    - Some may want to "exec" the `get_version_dict()` method from this file. This is how hatch determines the version.
-        - Using `from __future__ import ...` with dataclasses makes it hard to "exec" this file, so you MUST NOT use both here.
-            - You need to put the module in `sys.modules` before executing because dataclass will look for the type there.
-            - While this can be fixed, it's a common gotcha and I expect that some build backends or tools will be buggy.
+    - Some may want to "exec" the `get_version_dict()` method from this file.
+      This is how hatch determines the version.
+        - Using `from __future__ import ...` with dataclasses makes it hard to "exec" this file,
+          so you MUST NOT use both here.
+            - You need to put the module in `sys.modules` before executing
+              because dataclass will look for the type there.
+            - While this can be fixed, it's a common gotcha and I expect that
+              some build backends or tools will be buggy.
             - See https://github.com/mkdocs/mkdocs/issues/3141
               https://github.com/pypa/hatch/issues/1863
               https://github.com/sqlalchemy/alembic/issues/1419
-            - For now, we don't future import. In dataclass definition, we use `typing.Optional` instead of `| None`
+            - For now, we don't future import. In dataclass definition,
+              we use `typing.Optional` instead of `| None`
               until we drop support for Python 3.9.
 """
 
@@ -480,7 +485,8 @@ class GitPieces:
         Note:
             - New in Version-Pioneer.
             - Compatible with Chrome extension version format.
-                - Chrome extension version should not have more than 4 segments, so make sure the tags are up to 3 segments.
+                - Chrome extension version should not have more than 4 segments,
+                  so make sure the tags are up to 3 segments.
         """
         if self.error:
             raise ValueError("Unable to render version")
@@ -645,94 +651,6 @@ def _versions_from_parentdir(
     raise NotThisMethodError("rootdir doesn't start with parentdir_prefix")
 
 
-# def _get_keywords() -> "dict[str, str]":
-#     """Get the keywords needed to look up the version information."""
-#     # these strings will be replaced by git during git-archive.
-#     # setup.py/versioneer.py will grep for the variable names, so they must
-#     # each be defined on a line of their own. _version.py will just call
-#     # get_keywords().
-#     git_refnames = "$Format:%d$"
-#     git_full = "$Format:%H$"
-#     git_date = "$Format:%ci$"
-#     keywords = {"refnames": git_refnames, "full": git_full, "date": git_date}
-#     return keywords
-#
-#
-# def _git_versions_from_keywords(
-#     keywords: "dict[str, str]",
-#     tag_prefix: str,
-#     *,
-#     verbose: bool = False,
-# ) -> VersionDict:
-#     """Get version information from git keywords."""
-#     if "refnames" not in keywords:
-#         raise NotThisMethodError("Short version file found")
-#     date = keywords.get("date")
-#     if date is not None:
-#         # Use only the last line.  Previous lines may contain GPG signature
-#         # information.
-#         date = date.splitlines()[-1]
-#
-#         # git-2.2.0 added "%cI", which expands to an ISO-8601 -compliant
-#         # datestamp. However we prefer "%ci" (which expands to an "ISO-8601
-#         # -like" string, which we must then edit to make compliant), because
-#         # it's been around since git-1.5.3, and it's too difficult to
-#         # discover which version we're using, or to work around using an
-#         # older one.
-#         date = date.strip().replace(" ", "T", 1).replace(" ", "", 1)
-#     refnames = keywords["refnames"].strip()
-#     if refnames.startswith("$Format"):
-#         if verbose:
-#             print("keywords are unexpanded, not using")
-#         raise NotThisMethodError("unexpanded keywords, not a git-archive tarball")
-#     refs = {r.strip() for r in refnames.strip("()").split(",")}
-#     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
-#     # just "foo-1.0". If we see a "tag: " prefix, prefer those.
-#     tag_prefix = "tag: "
-#     tags = {r[len(tag_prefix) :] for r in refs if r.startswith(tag_prefix)}
-#     if not tags:
-#         # Either we're using git < 1.8.3, or there really are no tags. We use
-#         # a heuristic: assume all version tags have a digit. The old git %d
-#         # expansion behaves like git log --decorate=short and strips out the
-#         # refs/heads/ and refs/tags/ prefixes that would let us distinguish
-#         # between branches and tags. By ignoring refnames without digits, we
-#         # filter out many common branch names like "release" and
-#         # "stabilization", as well as "HEAD" and "master".
-#         tags = {r for r in refs if re.search(r"\d", r)}
-#         if verbose:
-#             print("discarding '{}', no digits".format(",".join(refs - tags)))
-#     if verbose:
-#         print("likely tags: {}".format(",".join(sorted(tags))))
-#     for ref in sorted(tags):
-#         # sorting will prefer e.g. "2.0" over "2.0rc1"
-#         if ref.startswith(tag_prefix):
-#             r = ref[len(tag_prefix) :]
-#             # Filter out refs that exactly match prefix or that don't start
-#             # with a number once the prefix is stripped (mostly a concern
-#             # when prefix is '')
-#             if not re.match(r"\d", r):
-#                 continue
-#             if verbose:
-#                 print(f"picking {r}")
-#             return {
-#                 "version": r,
-#                 "full_revisionid": keywords["full"].strip(),
-#                 "dirty": False,
-#                 "error": None,
-#                 "date": date,
-#             }
-#     # no suitable tags, so version is "0+unknown", but full hex is still there
-#     if verbose:
-#         print("no suitable tags, using unknown + full revision id")
-#     return {
-#         "version": "0+unknown",
-#         "full_revisionid": keywords["full"].strip(),
-#         "dirty": False,
-#         "error": "no suitable tags",
-#         "date": None,
-#     }
-
-
 def get_version_from_pkg_info(cwd: "str | PathLike") -> VersionDict:
     """
     Parse PKG-INFO file if it exists, because it's the most reliable way
@@ -804,13 +722,6 @@ def get_version_dict_from_vcs(
     if cwd is None:
         cwd = _SCRIPT_DIR_OR_CURRENT_DIR
 
-    # try:
-    #     return _git_versions_from_keywords(
-    #         _get_keywords(), cfg.tag_prefix, verbose=cfg.verbose
-    #     )
-    # except NotThisMethodError:
-    #     pass
-
     try:
         return get_version_from_pkg_info(cwd)
     except NotThisMethodError:
@@ -841,7 +752,7 @@ def get_version_dict_from_vcs(
 
 
 # IMPORTANT: However you customise the file, make sure the following function is defined!
-def get_version_dict():
+def get_version_dict() -> VersionDict:
     return get_version_dict_from_vcs()
 
 

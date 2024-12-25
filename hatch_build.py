@@ -9,7 +9,7 @@ from hatchling.metadata.plugin.interface import MetadataHookInterface
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from version_pioneer.build.hatchling.build_hook import (
-    VersionPioneerBuildHook,  # This hook will be used just by importing it.
+    VersionPioneerBuildHook,  # This hook will be used just by importing it.  # noqa: F401
 )
 from version_pioneer.utils.version_script import (
     exec_version_script,
