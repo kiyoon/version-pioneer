@@ -163,7 +163,7 @@ def get_version_dict():
 ```
 
 > [!TIP]
-> Use `version-pioneer install` or `version-pioneer print-versionscript-code` CLI commands to help you install (vendor) the `_version.py` file to your project.
+> Use `version-pioneer install` or `version-pioneer print-versionscript-code` CLI commands that helps you install (vendor) the `_version.py` file to your project.
 
 
 ## 🛠️ Configuration
