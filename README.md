@@ -66,14 +66,12 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 2. Create `src/my_project/_version.py` with `get_version_dict()` in your project.
     ```python
     # Example _version.py, completely non-vendored.
-    from pathlib import Path
-
+    # NOTE: You can't use __file__ here
     from version_pioneer.api import get_version_dict_wo_exec
 
 
     def get_version_dict():
         return get_version_dict_wo_exec(
-            cwd=Path(__file__).parent,
             style="pep440",
             tag_prefix="v",
             parentdir_prefix=None,
