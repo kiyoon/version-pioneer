@@ -4,6 +4,7 @@ import inspect
 import json
 import logging
 import os
+import sys
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from functools import lru_cache
@@ -11,37 +12,11 @@ from importlib.metadata import Distribution, PackageNotFoundError
 from os import PathLike
 from pathlib import Path
 
-from .versionscript import __file__ as VERSIONSCRIPT_FILE
-
 logger = logging.getLogger(__name__)
 
 APP_NAME = __name__
 APP_NAME_UPPER = APP_NAME.upper()
 PACKAGE_NAME = APP_NAME.replace("_", "-")
-
-VERSIONSCRIPT_FILE = Path(VERSIONSCRIPT_FILE).resolve()
-
-# NOTE: The value is None if you haven't installed with `pip install -e .` (development mode).
-# We make it None to discourage the use of this path. Only use for development.
-
-
-@lru_cache
-def pkg_is_editable():
-    direct_url = Distribution.from_name(PACKAGE_NAME).read_text("direct_url.json")
-    if direct_url is None:
-        # package is not installed at all
-        return False
-    return json.loads(direct_url).get("dir_info", {}).get("editable", False)
-
-
-try:
-    if pkg_is_editable():
-        PROJECT_DIR = Path(__file__).parent.parent.parent
-    else:
-        PROJECT_DIR = None
-except PackageNotFoundError:
-    # Not installed? Then it must be in development mode.
-    PROJECT_DIR = Path(__file__).parent.parent.parent
 
 
 def _version_pioneer_version():
@@ -86,9 +61,18 @@ def setup_logging(
         file_levels: List of logging levels for each output file. Only applies if log_dir is not None.
         log_init_messages: Whether to log the initialisation messages.
     """
-    from rich.console import Console
-    from rich.logging import RichHandler
-    from rich.theme import Theme
+    try:
+        from rich.console import Console
+        from rich.logging import RichHandler
+        from rich.theme import Theme
+    except ModuleNotFoundError:
+        print("⚠️ CLI dependencies are not installed.")  # noqa: T201
+        print(  # noqa: T201
+            "Please install Version-Pioneer with `pip install 'version-pioneer[cli]'`."
+        )
+        print("or even better, `uv tool install 'version-pioneer[cli]'`.")  # noqa: T201
+
+        sys.exit(1)
 
     _console = Console(
         theme=Theme(
@@ -100,6 +84,28 @@ def setup_logging(
             }
         )
     )
+
+    @lru_cache
+    def pkg_is_editable():
+        try:
+            direct_url = Distribution.from_name(PACKAGE_NAME).read_text(
+                "direct_url.json"
+            )
+        except PackageNotFoundError:
+            # Not installed?
+            return False
+
+        if direct_url is None:
+            # package is not installed at all
+            return False
+        return json.loads(direct_url).get("dir_info", {}).get("editable", False)
+
+    # NOTE: The value is None if you haven't installed with `pip install -e .` (development mode).
+    # We make it None to discourage the use of this path. Only use for development.
+    if pkg_is_editable():
+        PROJECT_DIR = Path(__file__).parent.parent.parent  # noqa: N806
+    else:
+        PROJECT_DIR = None  # noqa: N806
 
     assert len(output_files) == len(
         file_levels

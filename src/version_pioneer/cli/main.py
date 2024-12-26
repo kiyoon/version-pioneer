@@ -6,6 +6,8 @@
 
 # NOTE: type | None only works in Python 3.10+ with typer, so we use Optional instead.
 
+import sys
+
 try:
     import rich
     import typer
@@ -16,13 +18,11 @@ try:
 except ModuleNotFoundError:
     print("⚠️ CLI dependencies are not installed.")
     print("Please install Version-Pioneer with `pip install 'version-pioneer[cli]'`.")
-    print("or even better, `uv tool install version-pioneer[cli]`.")
-    import sys
+    print("or even better, `uv tool install 'version-pioneer[cli]'`.")
 
     sys.exit(1)
 
 
-import sys
 from pathlib import Path
 from typing import List, Optional
 
