@@ -11,7 +11,7 @@ from importlib.metadata import Distribution, PackageNotFoundError
 from os import PathLike
 from pathlib import Path
 
-from .version_pioneer_core import __file__ as VERSION_PIONEER_CORE_FILE
+from .versionscript import __file__ as VERSIONSCRIPT_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ APP_NAME = __name__
 APP_NAME_UPPER = APP_NAME.upper()
 PACKAGE_NAME = APP_NAME.replace("_", "-")
 
-VERSION_PIONEER_CORE_FILE = Path(VERSION_PIONEER_CORE_FILE).resolve()
+VERSIONSCRIPT_FILE = Path(VERSIONSCRIPT_FILE).resolve()
 
 # NOTE: The value is None if you haven't installed with `pip install -e .` (development mode).
 # We make it None to discourage the use of this path. Only use for development.
@@ -54,7 +54,7 @@ def _version_pioneer_version():
         from ._version import get_version_dict
     except ModuleNotFoundError:
         # If the package is installed as editable, the _version.py file doesn't exist.
-        from .version_pioneer_core import get_version_dict
+        from .versionscript import get_version_dict
 
     return get_version_dict()["version"]
 

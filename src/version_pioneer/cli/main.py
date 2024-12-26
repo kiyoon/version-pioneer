@@ -28,7 +28,7 @@ from rich.syntax import Syntax
 from version_pioneer.template import INIT_PY, NO_VENDOR_VERSIONSCRIPT, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
 from version_pioneer.utils.version_script import ResolutionFormat
-from version_pioneer.version_pioneer_core import VersionStyle
+from version_pioneer.versionscript import VersionStyle
 
 from .docstring import from_docstring
 
@@ -171,7 +171,7 @@ def install(
 
 @app.command()
 def print_versionscript_code():
-    """Print the content of _version.py (version_pioneer_core.py) file (for manual installation)."""
+    """Print the content of versionscript.py file (for manual installation)."""
     from version_pioneer.api import get_version_script_core_code
 
     print(get_version_script_core_code())

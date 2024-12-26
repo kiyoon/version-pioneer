@@ -19,7 +19,7 @@ from version_pioneer.utils.version_script import (
     ResolutionFormat,
     convert_version_dict,
 )
-from version_pioneer.version_pioneer_core import (
+from version_pioneer.versionscript import (
     VERSION_STYLE_TYPE,
     VersionPioneerConfig,
     VersionStyle,
@@ -32,10 +32,10 @@ class VersionMismatchError(Exception):
 
 
 def get_version_script_core_code():
-    """Get the content of version_pioneer_core.py file."""
-    from version_pioneer import VERSION_PIONEER_CORE_FILE, __version__
+    """Get the content of versionscript.py file."""
+    from version_pioneer import VERSIONSCRIPT_FILE, __version__
 
-    version_py_code = VERSION_PIONEER_CORE_FILE.read_text()
+    version_py_code = VERSIONSCRIPT_FILE.read_text()
 
     # Put header after the shebang line
     version_py_code = version_py_code.replace(

@@ -161,9 +161,9 @@ Voilà! The version string is now dynamically generated from git tags, and the `
 
 If you don't want to add a dev dependency, you can simply vendor the "versionscript" in your project.
 
-Copy-paste the entire `src/version_pioneer/version_pioneer_core.py` to your project, use it as is or customise it to your needs.
+Copy-paste the entire [`versionscript.py`](src/version_pioneer/versionscript.py) to your project, use it as is or customise it to your needs.
 
-If you choose to modify the script, remember one rule: the `_version.py` file must contain `get_version_dict()` function that returns a dictionary with a "version" key. (more precisely, the `VersionDict` type in the script.)
+If you choose to modify the script, remember one rule: the versionscript file must contain `get_version_dict()` function that returns a dictionary with a "version" key. (more precisely, the `VersionDict` type in the script.)
 
 ```python
 # Valid _version.py
@@ -173,12 +173,12 @@ def get_version_dict():
 ```
 
 > [!TIP]
-> Use `version-pioneer install` or `version-pioneer print-versionscript-code` CLI commands that helps you install (vendor) the `_version.py` file to your project.
+> Use `version-pioneer install` or `version-pioneer print-versionscript-code` CLI commands that helps you install (vendor) the `versionscript.py` file to your project.
 
 
 ## 🛠️ Configuration
 
-Unlike Versioneer, the configuration is located in two places: `pyproject.toml` and the "versionscript" (`src/my_project/_version.py`). This is to make it less confusing, because in Versioneer, most of the pyproject.toml config were actually useless once you install `_version.py` in your project.
+Unlike Versioneer, the configuration is located in two places: `pyproject.toml` and the "versionscript" (`src/my_project/_version.py`). This is to make it less confusing, because in Versioneer, most of the pyproject.toml config were actually useless once you install `versionscript.py` in your project.
 
 The idea is that the toml config just tells you where the script is (for build backends to identify them), and the script has everything it needs. 
 
@@ -226,25 +226,25 @@ If you want to customise the logic, you can modify the entire script. However yo
 
 This section explains how Version-Pioneer works, so you can customise it to your needs.
 
-### Basic: _version.py as a script
+### Basic: versionscript.py as a script
 
-The core functionality is in one file: [`version_pioneer_core.py`](src/version_pioneer/version_pioneer_core.py). Let's download and rename the file to _version.py to avoid confusion. This code is either used as a script (`python _version.py`) that prints a json of all useful information, or imported as a module (`from _version import get_version_dict`), depending on your needs.
+The core functionality is in one file: [`versionscript.py`](src/version_pioneer/versionscript.py). This code is either used as a script (`python versionscript.py`) that prints a json of all useful information, or imported as a module (`from my_project.versionscript import get_version_dict`), depending on your needs.
 
 Run it in your project to see what it prints. Change git tags, commit, and see how it changes.
 
 ```console
 $ git tag v1.2.3
-$ python _version.py
+$ python versionscript.py
 {"version": "1.2.3", "full_revisionid": "xxxxxx", "dirty": False, "error": None, "date": "2024-12-17T12:25:42+0900"}
 $ git commit --allow-empty -m "commit"
-$ python _version.py
+$ python versionscript.py
 {"version": "1.2.3+1.gxxxxxxx", "full_revisionid": "xxxxxx", "dirty": True, "error": None, "date": "2024-12-17T12:25:42+0900"}
 ```
 
-### Basic: converting _version.py to a constant version string (for build)
+### Basic: converting versionscript.py to a constant versionfile (for build)
 
-You lose the git history during build, so you need to convert the `_version.py` to a constant version string.  
-Just `exec` the original `_version.py` and save the result as you wish: text, json, etc.
+You lose the git history during build, so you need to convert the `versionscript.py` to a constant version string.  
+Just `exec` the original `versionscript.py` and save the result as you wish: text, json, etc.
 
 ```python
 # code to evaluate get_version_dict() from the version script
@@ -256,7 +256,7 @@ print(module_globals["get_version_dict"]())
 
 ### Basic: building a Python package (replacing "versionscript" to a constant "versionfile")
 
-Place `_version.py` in your project source directory (like `src/my_project/_version.py`). When you install your package like `pip install -e .`, the code is unchanged, so it will always print up-to-date version string from git tags.
+Place `versionscript.py` in your project source directory (like `src/my_project/_version.py`). When you install your package like `pip install -e .`, the code is unchanged, so it will always print up-to-date version string from git tags.
 
 However, if you install like `pip install .` or `pyproject-build`, `uv build` etc., you would lose the git history so the `src/my_project/_version.py` should change.  
 The original file is replaced with this. This is generated by literally executing the above file and saving version_dict as a constant.
@@ -277,7 +277,7 @@ Add hatchling configuration to `pyproject.toml`.
 > In this tutorial, we're assuming that `versionscript` == `versionfile-sdist` for the sake of simplicity.
 > This will replace the _version.py itself.
 >
-> If you want to keep the original _version.py (different `versionfile-sdist`), first exec `versionfile-sdist` if it exists, otherwise exec `versionscript`.  
+> If you want to keep the original versionscript.py (different `versionfile-sdist`), first exec `versionfile-sdist` if it exists, otherwise exec `versionscript`.  
 > The reason is that once sdist is built, the version should have been already evaluated and the git information is removed, so `versionfile-sdist` must take precedence.
 
 ```toml
@@ -337,7 +337,7 @@ class CustomPioneerBuildHook(BuildHookInterface):
 
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
-        # evaluate the original _version.py file to get the computed version
+        # evaluate the original versionscript.py file to get the computed versionfile
         versionscript = Path(
             pyproject_toml["tool"]["version-pioneer"]["versionscript"]
         )
@@ -440,7 +440,7 @@ def pdm_build_initialize(context: Context):
 
 ## 🚀 Version-Pioneer CLI
 
-The above usage should be completely fine, but we also provide a CLI tool to help you install and evaluate _version.py.
+The above usage should be completely fine, but we also provide a CLI tool to help you install and evaluate versionscript.py.
 
 ```bash
 # Install with pip
@@ -459,7 +459,7 @@ $ version-pioneer
 
 ╭─ Commands ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ install                    Add _version.py, modify __init__.py and maybe setup.py.                                             │
-│ print-versionscript-code   Print the content of _version.py (version_pioneer_core.py) file (for manual installation).          │
+│ print-versionscript-code   Print the content of _version.py (versionscript.py) file (for manual installation).                 │
 │ exec-version-script        Resolve the _version.py file for build, and print the content.                                      │
 │ get-version-wo-exec        WITHOUT evaluating the _version.py file, get version from VCS with built-in Version-Pioneer logic.  │
 │ build-consistency-test     Check if builds are consistent with sdist, wheel, both, sdist -> sdist.                             │
@@ -478,7 +478,7 @@ versionfile-sdist = "src/my_project/_version.py"
 versionfile-wheel = "my_project/_version.py"
 ```
 
-2. `version-pioneer install` will copy-paste the [`version_pioneer_core.py`](src/version_pioneer/version_pioneer_core.py) to the `versionscript` path you specified, and append `__version__` to your `__init__.py`.
+2. `version-pioneer install` will copy-paste the [`versionscript.py`](src/version_pioneer/versionscript.py) to the `versionscript` path you specified, and define `__version__` to your `__init__.py`.
 
 If you are using setuptools backend, it will also create a `setup.py` file for you.
 
@@ -513,9 +513,9 @@ if __name__ == "__main__":
 
 ### `version-pioneer get-version-wo-exec`: Get version without using _version.py
 
-This is useful when you want to get the version string without evaluating the `_version.py` file, like your project is probably not Python.
+This is useful when you want to get the version string without evaluating the versionscript file, like your project is probably not Python.
 
-It's the same as running the `version_pioneer_core.py` script (unchanged, not the vendored one), but with more options.
+It's the same as running the `versionscript.py` script (unchanged, not the vendored one), but with more options.
 
 ```console
 $ version-pioneer get-version-wo-exec

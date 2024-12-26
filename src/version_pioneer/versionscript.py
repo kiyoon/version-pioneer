@@ -2,27 +2,31 @@
 """
 Generate a version number from Git tags (e.g. tag "v1.2.3" and 4 commits -> "1.2.3+4.g123abcdef" in "pep440" style).
 
-It may be replaced with a much shorter file in distribution tarballs (built by `uv build`, `pyproject-build`)
-that just contains one method: `def get_version_dict() -> VersionDict: return {"version": "0.1.0", ...}`.
+This "versionscript" may be replaced with a much shorter "versionfile" in distribution tarballs
+(built by `uv build`, `pyproject-build`) that just contains one method:
+`def get_version_dict() -> VersionDict: return {"version": "0.1.0", ...}`.
 
 Refactored from Versioneer's _version.py (for git).
 
 Note:
     - Should be compatible with python 3.8+ without any dependencies.
+        - (For dev) Avoid importing third-party libraries, including version-pioneer itself
+          because this file can get vendored into other projects.
+        - (For user) Once the script is vendored, and you want to customise it, of course you can
+          import other libraries and add those in build-time dependencies.
     - This file is usually located at `src/my_package/_version.py`.
-    - `src/my_package/__init__.py` should define `__version__ = get_version_dict()["version"]` from this file.
+    - `src/my_package/__init__.py` should define `__version__ = get_version_dict()["version"]` by importing this module.
     - It should also be able to be run as a script to print the version info in json format.
-    - Some may want to "exec" the `get_version_dict()` method from this file.
-      This is how hatch determines the version.
+    - It is often `exec`-uted and `get_version_dict()` is evaluated from this file.
         - Using `from __future__ import ...` with dataclasses makes it hard to "exec" this file,
           so you MUST NOT use both here.
+            - See https://github.com/mkdocs/mkdocs/issues/3141
+              https://github.com/pypa/hatch/issues/1863
+              https://github.com/sqlalchemy/alembic/issues/1419
             - You need to put the module in `sys.modules` before executing
               because dataclass will look for the type there.
             - While this can be fixed, it's a common gotcha and I expect that
               some build backends or tools will be buggy.
-            - See https://github.com/mkdocs/mkdocs/issues/3141
-              https://github.com/pypa/hatch/issues/1863
-              https://github.com/sqlalchemy/alembic/issues/1419
             - For now, we don't future import. In dataclass definition,
               we use `typing.Optional` instead of `| None`
               until we drop support for Python 3.9.
@@ -47,12 +51,12 @@ from typing import Any, Literal, Optional, TypedDict, TypeVar
 
 class VersionStyle(str, Enum):
     pep440 = "pep440"
-    pep440_branch = "pep440_branch"
-    pep440_pre = "pep440_pre"
-    pep440_post = "pep440_post"
-    pep440_post_branch = "pep440_post_branch"
-    git_describe = "git_describe"
-    git_describe_long = "git_describe_long"
+    pep440_branch = "pep440-branch"
+    pep440_pre = "pep440-pre"
+    pep440_post = "pep440-post"
+    pep440_post_branch = "pep440-post-branch"
+    git_describe = "git-describe"
+    git_describe_long = "git-describe-long"
     digits = "digits"
 
 
@@ -60,12 +64,12 @@ VERSION_STYLE_TYPE = TypeVar(
     "VERSION_STYLE_TYPE",
     Literal[
         "pep440",
-        "pep440_branch",
-        "pep440_pre",
-        "pep440_post",
-        "pep440_post_branch",
-        "git_describe",
-        "git_describe_long",
+        "pep440-branch",
+        "pep440-pre",
+        "pep440-post",
+        "pep440-post-branch",
+        "git-describe",
+        "git-describe-long",
         "digits",
     ],
     VersionStyle,
@@ -518,17 +522,17 @@ class GitPieces:
 
         if style == "pep440":
             rendered = self._render_pep440()
-        elif style == "pep440_branch":
+        elif style == "pep440-branch":
             rendered = self._render_pep440_branch()
-        elif style == "pep440_pre":
+        elif style == "pep440-pre":
             rendered = self._render_pep440_pre()
-        elif style == "pep440_post":
+        elif style == "pep440-post":
             rendered = self._render_pep440_post()
-        elif style == "pep440_post_branch":
+        elif style == "pep440-post-branch":
             rendered = self._render_pep440_post_branch()
-        elif style == "git_describe":
+        elif style == "git-describe":
             rendered = self._render_git_describe()
-        elif style == "git_describe_long":
+        elif style == "git-describe-long":
             rendered = self._render_git_describe_long()
         elif style == "digits":
             rendered = self._render_digits()

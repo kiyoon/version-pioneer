@@ -13,7 +13,7 @@ from version_pioneer.utils.toml import (
     get_toml_value,
     load_toml,
 )
-from version_pioneer.version_pioneer_core import VersionDict
+from version_pioneer.versionscript import VersionDict
 
 logger = logging.getLogger(__name__)
 
