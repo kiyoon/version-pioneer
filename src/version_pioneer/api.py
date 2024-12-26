@@ -103,6 +103,7 @@ def get_version_dict_wo_exec(
     style: VERSION_STYLE_TYPE = VersionStyle.pep440,
     tag_prefix: str = "v",
     parentdir_prefix: str | None = None,
+    verbose: bool = False,
 ):
     """
     WITHOUT using the installed _version.py file, get version with Version-Pioneer logic.
@@ -117,6 +118,7 @@ def get_version_dict_wo_exec(
         style=VersionStyle(style),
         tag_prefix=tag_prefix,
         parentdir_prefix=parentdir_prefix,
+        verbose=verbose,
     )
 
     version_dict = get_version_dict_from_vcs(
@@ -132,6 +134,7 @@ def get_version_wo_exec_and_convert(
     tag_prefix: str = "v",
     parentdir_prefix: str | None = None,
     output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.version_string,
+    verbose: bool = False,
 ):
     """
     WITHOUT using the installed _version.py file, get version with Version-Pioneer logic, and return as a string.
@@ -149,6 +152,7 @@ def get_version_wo_exec_and_convert(
             style=style,
             tag_prefix=tag_prefix,
             parentdir_prefix=parentdir_prefix,
+            verbose=verbose,
         ),
         output_format,
     )

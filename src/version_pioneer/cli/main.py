@@ -202,6 +202,7 @@ def get_version_wo_exec(
     tag_prefix: str = "v",
     parentdir_prefix: Optional[str] = None,
     output_format: ResolutionFormat = ResolutionFormat.version_string,
+    verbose: bool = False,
 ):
     """
     WITHOUT evaluating the _version.py file, get version from VCS with built-in Version-Pioneer logic.
@@ -222,6 +223,7 @@ def get_version_wo_exec(
             tag_prefix=tag_prefix,
             parentdir_prefix=parentdir_prefix,
             output_format=output_format,
+            verbose=verbose,
         )
     )
 

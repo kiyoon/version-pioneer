@@ -46,11 +46,12 @@ from email.parser import Parser
 from enum import Enum
 from os import PathLike
 from pathlib import Path
-from typing import Any, Literal, Optional, TypedDict, TypeVar
+from typing import Any, Literal, Optional, TypedDict, TypeVar, Union
 
 
 class VersionStyle(str, Enum):
     pep440 = "pep440"
+    pep440_master = "pep440-master"
     pep440_branch = "pep440-branch"
     pep440_pre = "pep440-pre"
     pep440_post = "pep440-post"
@@ -64,6 +65,7 @@ VERSION_STYLE_TYPE = TypeVar(
     "VERSION_STYLE_TYPE",
     Literal[
         "pep440",
+        "pep440-master",
         "pep440-branch",
         "pep440-pre",
         "pep440-post",
@@ -96,7 +98,7 @@ class VersionPioneerConfig:
 
 
 class VersionDict(TypedDict):
-    """Type of __version_dict__."""
+    """Return type of get_version_dict()."""
 
     version: str
     full_revisionid: "str | None"
@@ -109,11 +111,153 @@ try:
     _SCRIPT_DIR_OR_CURRENT_DIR = Path(__file__).resolve().parent
 except NameError:
     # NOTE: py2exe/bbfreeze/non-cpython implementations may not have __file__.
+    # and usually during installation when this file is evaluated, __file__ doesn't exist.
+    # However, once you installed in editable mode (e.g. `pip install -e .`),
+    # __file__ will be available and more reliable.
     _SCRIPT_DIR_OR_CURRENT_DIR = Path.cwd()
+
+
+MASTER_BRANCHES = ("master", "main")
+
+if sys.platform == "win32":
+    GIT_COMMANDS = ["git.cmd", "git.exe"]
+else:
+    GIT_COMMANDS = ["git"]
+
+# GIT_DIR can interfere with correct operation of Versioneer.
+# It may be intended to be passed to the Versioneer-versioned project,
+# but that should not change where we get our version from.
+env = os.environ.copy()
+env.pop("GIT_DIR", None)
 
 
 class NotThisMethodError(Exception):
     """Exception raised if a method is not valid for the current scenario."""
+
+
+class CurrentBranchIsMasterError(Exception):
+    """GitMasterDistance can't be initialised if the current branch is master."""
+
+
+@dataclass(frozen=True)
+class GitMasterDistance:
+    """
+    Compute the distance from the tag until master, and from master to current branch.
+
+    Useful if you often create a develop branch from master.
+
+    Relevant commands:
+        ```console
+        $ git branch --show-current
+        feat/branch-name
+
+        $ # use with -a to include remote branches
+        $ git branch --contains <commit>
+        * master
+          feat/branch-name
+
+        $ # Notice that there are no master (only the origin/master) in the list
+        $ # because the master has more commits than the current branch.
+        $ # Thus we can't use the '%D' ref names.
+        $ # We instead use `git branch --contains` on each commit to find the branch.
+        $ git log v0.3.2..[BRANCH] --pretty=format:"%H,%h,%D"  # BRANCH is optional (default: current branch)
+        87e38450d1fce0398fbc9de08f2abe3e5da0431e,87e3845,trash/version
+        8a76eac0f107dd3810c3cfd5c89e92c7f5d31e50,8a76eac,
+        a855d640912f728b8946eddba41ed5b2a992f394,a855d64,origin/master, origin/HEAD
+        5cb3c6663f494b3c99dfd23b5394fa2da7f49cef,5cb3c66,
+        2c00c0ed4e46a5459bc70f47739a0c50a789d3c3,2c00c0e,
+        812d3e29666f2d75b80b4160532fa25afaab2ffd,812d3e2,tag: v0.3.3
+        2127fd373d14ed5ded497fc18ac1c1b667f93a7d,2127fd3,
+        ae7cb503342d551e2503dc0a90be656946342743,ae7cb50,
+        ```
+
+    References:
+        - https://stackoverflow.com/questions/4649356/how-do-i-run-git-log-to-see-changes-only-for-a-specific-branch
+        - https://stackoverflow.com/questions/2706797/finding-what-branch-a-git-commit-came-from
+        - https://stackoverflow.com/questions/3998883/git-how-to-find-commit-hash-where-branch-originated-from
+            - The reason we can't use reflog..
+    """
+
+    current_branch: str
+    distance_from_tag_to_master: int
+    distance_from_master: int
+    master_commit: Optional[str] = (
+        None  # None means probably the tag is master and no further commits from master.
+    )
+
+    @property
+    def master_commit_short(self) -> "str | None":
+        """Return the short commit hash of the master commit."""
+        if self.master_commit is not None:
+            return self.master_commit[:7]
+        return None
+
+    @classmethod
+    def from_git(
+        cls: "type[GitMasterDistance]",
+        tag_of_interest: "str | None",
+        *,
+        cwd: "str | PathLike",
+        verbose: bool = False,
+    ) -> "GitMasterDistance":
+        git_runner = functools.partial(
+            _run_git_command_or_error, env=env, verbose=verbose
+        )
+
+        # Get the current branch name
+        current_branch, rc = git_runner(
+            ["branch", "--show-current"],
+            cwd=cwd,
+        )
+        current_branch = current_branch.strip()
+
+        if current_branch in MASTER_BRANCHES:
+            raise CurrentBranchIsMasterError(
+                "Current branch is master. Can't compute distance to/from master."
+            )
+
+        if tag_of_interest is None:
+            # Get entire history (commits) from the current branch
+            out, rc = git_runner(
+                ["log", "--pretty=format:%H"],
+                cwd=cwd,
+            )
+        else:
+            # Get history from the tag to the current branch
+            out, rc = git_runner(
+                ["log", f"{tag_of_interest}..", "--pretty=format:%H"],
+                cwd=cwd,
+            )
+
+        all_commits = out.splitlines()
+
+        # NOTE: all commits could be no output if the tag is the same as the current branch.
+
+        # Search from the top, and find the first commit that shares the master branch
+        distance_from_master = 0
+        master_commit = None
+        for commit in all_commits:
+            out, rc = git_runner(
+                ["branch", "--contains", commit],
+                cwd=cwd,
+            )
+            branches = out.splitlines()
+            # Strip off the leading "* " from the list of branches.
+            branches = [branch.lstrip("* ") for branch in branches]
+            if any(
+                master_branch_name in branches for master_branch_name in MASTER_BRANCHES
+            ):
+                master_commit = commit
+                break
+
+            distance_from_master += 1
+
+        return cls(
+            current_branch=current_branch,
+            distance_from_tag_to_master=len(all_commits) - distance_from_master,
+            distance_from_master=distance_from_master,
+            master_commit=master_commit,
+        )
 
 
 @dataclass(frozen=True)
@@ -128,44 +272,40 @@ class GitPieces:
     long: str
     short: str
     branch: str
-    closest_tag: Optional[str]
+    closest_fulltag: Optional[str]  # include tag_prefix (v1.0.0)
+    closest_tag: Optional[str]  # strip tag_prefix (1.0.0)
     distance: int
     dirty: bool
     error: Optional[str]
+
+    # options to pass to GitMasterDistance
+    cwd: Union[str, PathLike]
+    verbose: bool
+
     date: Optional[str] = None
 
     @classmethod
-    def from_vcs(
+    def from_git(
         cls: "type[GitPieces]",
         tag_prefix: str,
-        root: "str | PathLike",
         *,
+        cwd: "str | PathLike",
         verbose: bool = False,
     ) -> "GitPieces":
-        if sys.platform == "win32":
-            git_commands = ["git.cmd", "git.exe"]
-        else:
-            git_commands = ["git"]
-
-        # GIT_DIR can interfere with correct operation of Versioneer.
-        # It may be intended to be passed to the Versioneer-versioned project,
-        # but that should not change where we get our version from.
-        env = os.environ.copy()
-        env.pop("GIT_DIR", None)
         runner = functools.partial(_run_command, env=env, verbose=verbose)
 
         _, rc = runner(
-            git_commands, ["rev-parse", "--git-dir"], cwd=root, hide_stderr=not verbose
+            GIT_COMMANDS, ["rev-parse", "--git-dir"], cwd=cwd, hide_stderr=not verbose
         )
         if rc != 0:
             if verbose:
-                print(f"Directory {root} not under git control")
+                print(f"Directory {cwd} not under git control")
             raise NotThisMethodError("'git rev-parse --git-dir' returned error")
 
         # if there is a tag matching tag_prefix, this yields TAG-NUM-gHEX[-dirty]
         # if there isn't one, this yields HEX[-dirty] (no NUM)
         describe_out, rc = runner(
-            git_commands,
+            GIT_COMMANDS,
             [
                 "describe",
                 "--tags",
@@ -175,13 +315,13 @@ class GitPieces:
                 "--match",
                 f"{tag_prefix}[[:digit:]]*",
             ],
-            cwd=root,
+            cwd=cwd,
         )
         # --long was added in git-1.5.5
         if describe_out is None:
             raise NotThisMethodError("'git describe' failed")
         describe_out = describe_out.strip()
-        full_out, rc = runner(git_commands, ["rev-parse", "HEAD"], cwd=root)
+        full_out, rc = runner(GIT_COMMANDS, ["rev-parse", "HEAD"], cwd=cwd)
         if full_out is None:
             raise NotThisMethodError("'git rev-parse' failed")
         full_out = full_out.strip()
@@ -192,7 +332,7 @@ class GitPieces:
         pieces["error"] = None
 
         branch_name, rc = runner(
-            git_commands, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=root
+            GIT_COMMANDS, ["rev-parse", "--abbrev-ref", "HEAD"], cwd=cwd
         )
         # --abbrev-ref was added in git-1.6.3
         if rc != 0 or branch_name is None:
@@ -203,7 +343,7 @@ class GitPieces:
             # If we aren't exactly on a branch, pick a branch which represents
             # the current commit. If all else fails, we are on a branchless
             # commit.
-            branches, rc = runner(git_commands, ["branch", "--contains"], cwd=root)
+            branches, rc = runner(GIT_COMMANDS, ["branch", "--contains"], cwd=cwd)
             # --contains was added in git-1.5.4
             if rc != 0 or branches is None:
                 raise NotThisMethodError("'git branch --contains' returned error")
@@ -214,14 +354,17 @@ class GitPieces:
                 branches.pop(0)
 
             # Strip off the leading "* " from the list of branches.
-            branches = [branch[2:] for branch in branches]
-            if "master" in branches:
-                branch_name = "master"
-            elif not branches:
+            branches = [branch.lstrip("* ") for branch in branches]
+            if not branches:
                 branch_name = None
             else:
-                # Pick the first branch that is returned. Good or bad.
-                branch_name = branches[0]
+                for master_branch_name in MASTER_BRANCHES:
+                    if master_branch_name in branches:
+                        branch_name = master_branch_name
+                        break
+                else:
+                    # Pick the first branch that is returned. Good or bad.
+                    branch_name = branches[0]
 
         pieces["branch"] = branch_name
 
@@ -245,7 +388,7 @@ class GitPieces:
                 pieces["error"] = (
                     f"unable to parse git-describe output: '{describe_out}'"
                 )
-                return cls(**pieces)
+                return cls(**pieces, cwd=cwd, verbose=verbose)
 
             # tag
             full_tag = mo.group(1)
@@ -255,7 +398,8 @@ class GitPieces:
                 pieces["error"] = (
                     f"tag '{full_tag}' doesn't start with prefix '{tag_prefix}'"
                 )
-                return cls(**pieces)
+                return cls(**pieces, cwd=cwd, verbose=verbose)
+            pieces["closest_fulltag"] = full_tag
             pieces["closest_tag"] = full_tag[len(tag_prefix) :]
 
             # distance: number of commits since tag
@@ -268,13 +412,13 @@ class GitPieces:
             # HEX: no tags
             pieces["closest_tag"] = None
             out, rc = runner(
-                git_commands, ["rev-list", "HEAD", "--left-right"], cwd=root
+                GIT_COMMANDS, ["rev-list", "HEAD", "--left-right"], cwd=cwd
             )
             assert out is not None
             pieces["distance"] = len(out.split())  # total number of commits
 
         # commit date: see ISO-8601 comment in git_versions_from_keywords()
-        out, rc = runner(git_commands, ["show", "-s", "--format=%ci", "HEAD"], cwd=root)
+        out, rc = runner(GIT_COMMANDS, ["show", "-s", "--format=%ci", "HEAD"], cwd=cwd)
         assert out is not None
         date = out.strip()
         # Use only the last line.  Previous lines may contain GPG signature
@@ -282,7 +426,7 @@ class GitPieces:
         date = date.splitlines()[-1]
         pieces["date"] = date.strip().replace(" ", "T", 1).replace(" ", "", 1)
 
-        return cls(**pieces)
+        return cls(**pieces, cwd=cwd, verbose=verbose)
 
     @property
     def _plus_or_dot(self) -> str:
@@ -317,6 +461,55 @@ class GitPieces:
                 rendered += ".dirty"
         return rendered
 
+    def _render_pep440_master(self) -> str:
+        """
+        Render including master branch distance and commit like TAG[+MASTERDIST.gMASTERHEX.BRANCHDIST.gHEX[.dirty]].
+
+        For example, 'v1.2.3+4.g1abcdef.5.g2345678'
+        meaning 4 commits from v1.2.3 to master, and 5 commits from master to the current branch.
+
+        Exceptions:
+            1: no tags. git_describe was just HEX. 0+untagged.MASTERDISTANCE.gMASTERHEX.BRANCHDIST.gHEX[.dirty]
+            2: master = tag. TAG[+DISTANCE.gHEX[.dirty]] just like PEP440 style.
+            3: current branch is master. Just like PEP440 style.
+
+        Note:
+            - New in Version-Pioneer.
+        """
+        try:
+            master_info = GitMasterDistance.from_git(
+                tag_of_interest=self.closest_fulltag, cwd=self.cwd, verbose=self.verbose
+            )
+        except CurrentBranchIsMasterError:
+            # exception #3
+            return self._render_pep440()
+
+        if self.verbose:
+            print(f"{master_info = }")
+
+        if master_info.master_commit is None:
+            # exception #2
+            return self._render_pep440()
+
+        assert master_info.distance_from_tag_to_master > 0
+
+        if self.closest_tag:
+            rendered = self.closest_tag
+            rendered += self._plus_or_dot
+        else:
+            # exception #1
+            rendered = "0+untagged."
+
+        rendered += (
+            f"{master_info.distance_from_tag_to_master}.g{master_info.master_commit_short}"
+            f".{master_info.distance_from_master}.g{self.short}"
+        )
+
+        if self.dirty:
+            rendered += ".dirty"
+
+        return rendered
+
     def _render_pep440_branch(self) -> str:
         """
         TAG[[.dev0]+DISTANCE.gHEX[.dirty]] .
@@ -325,12 +518,12 @@ class GitPieces:
         (a feature branch will appear "older" than the master branch).
 
         Exceptions:
-        1: no tags. 0[.dev0]+untagged.DISTANCE.gHEX[.dirty]
+            1: no tags. 0[.dev0]+untagged.DISTANCE.gHEX[.dirty]
         """
         if self.closest_tag:
             rendered = self.closest_tag
             if self.distance or self.dirty:
-                if self.branch != "master":
+                if self.branch not in MASTER_BRANCHES:
                     rendered += ".dev0"
                 rendered += self._plus_or_dot
                 rendered += f"{self.distance}.g{self.short}"
@@ -339,7 +532,7 @@ class GitPieces:
         else:
             # exception #1
             rendered = "0"
-            if self.branch != "master":
+            if self.branch not in MASTER_BRANCHES:
                 rendered += ".dev0"
             rendered += f"+untagged.{self.distance}.g{self.short}"
             if self.dirty:
@@ -362,7 +555,7 @@ class GitPieces:
         TAG[.postN.devDISTANCE] -- No -dirty.
 
         Exceptions:
-        1: no tags. 0.post0.devDISTANCE
+            1: no tags. 0.post0.devDISTANCE
         """
         if self.closest_tag:
             if self.distance:
@@ -383,29 +576,34 @@ class GitPieces:
 
     def _render_pep440_post(self) -> str:
         """
-        TAG[.postDISTANCE[.dev0]+gHEX] .
+        TAG[.postDISTANCE+gHEX[.dirty]] .
 
-        The ".dev0" means dirty. Note that .dev0 sorts backwards
-        (a dirty tree will appear "older" than the corresponding clean one),
-        but you shouldn't be releasing software with -dirty anyways.
+        Note:
+            Difference from versioneer is that .dev0 used to be used for .dirty. Their note:
+
+            > TAG[.postDISTANCE[.dev0]+gHEX] .
+            >
+            > The ".dev0" means dirty. Note that .dev0 sorts backwards
+            > (a dirty tree will appear "older" than the corresponding clean one),
+            > but you shouldn't be releasing software with -dirty anyways.
 
         Exceptions:
-        1: no tags. 0.postDISTANCE[.dev0]
+            When no tags: 0.postDISTANCE+gHEX[.dirty]
         """
         if self.closest_tag:
             rendered = self.closest_tag
             if self.distance or self.dirty:
                 rendered += f".post{self.distance}"
-                if self.dirty:
-                    rendered += ".dev0"
                 rendered += self._plus_or_dot
                 rendered += f"g{self.short}"
+                if self.dirty:
+                    rendered += ".dirty"
         else:
-            # exception #1
+            # exception
             rendered = f"0.post{self.distance}"
-            if self.dirty:
-                rendered += ".dev0"
             rendered += f"+g{self.short}"
+            if self.dirty:
+                rendered += ".dirty"
         return rendered
 
     def _render_pep440_post_branch(self) -> str:
@@ -421,7 +619,7 @@ class GitPieces:
             rendered = self.closest_tag
             if self.distance or self.dirty:
                 rendered += f".post{self.distance}"
-                if self.branch != "master":
+                if self.branch not in MASTER_BRANCHES:
                     rendered += ".dev0"
                 rendered += self._plus_or_dot
                 rendered += f"g{self.short}"
@@ -430,7 +628,7 @@ class GitPieces:
         else:
             # exception #1
             rendered = f"0.post{self.distance}"
-            if self.branch != "master":
+            if self.branch not in MASTER_BRANCHES:
                 rendered += ".dev0"
             rendered += f"+g{self.short}"
             if self.dirty:
@@ -522,6 +720,8 @@ class GitPieces:
 
         if style == "pep440":
             rendered = self._render_pep440()
+        elif style == "pep440-master":
+            rendered = self._render_pep440_master()
         elif style == "pep440-branch":
             rendered = self._render_pep440_branch()
         elif style == "pep440-pre":
@@ -599,6 +799,23 @@ def _run_command(
             print(f"stdout was {stdout}")
         return None, process.returncode
     return stdout, process.returncode
+
+
+def _run_git_command_or_error(
+    args: "list[str | PathLike]",
+    *,
+    cwd: "str | PathLike | None" = None,
+    env: "dict[str, str] | None" = None,
+    verbose: bool = False,
+):
+    """Run a git command or raise an error."""
+    out, rc = _run_command(
+        GIT_COMMANDS, args, cwd=cwd, hide_stderr=not verbose, env=env, verbose=verbose
+    )
+
+    if rc != 0 or out is None:
+        raise NotThisMethodError(f"'git {' '.join(map(str, args))}' returned error")
+    return out, rc
 
 
 def _find_root_dir_with_file(
@@ -732,7 +949,7 @@ def get_version_dict_from_vcs(
         pass
 
     try:
-        return GitPieces.from_vcs(cfg.tag_prefix, cwd, verbose=cfg.verbose).render(
+        return GitPieces.from_git(cfg.tag_prefix, cwd=cwd, verbose=cfg.verbose).render(
             cfg.style
         )
     except NotThisMethodError:

@@ -15,7 +15,8 @@ path = "hatch_build.py"
 path = "hatch_build.py"
 
 [tool.version-pioneer]
-versionscript = "src/version_pioneer/versionscript.py"
+# versionscript = "src/version_pioneer/versionscript.py"
+versionscript = "src/version_pioneer/_version.py"
 versionfile-sdist = "src/version_pioneer/_version.py"
 versionfile-wheel = "version_pioneer/_version.py"
 
