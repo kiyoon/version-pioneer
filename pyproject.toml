@@ -72,7 +72,8 @@ log_cli_level = "INFO"
 
 [tool.coverage.report]
 omit = [
-  "src/version_pioneer/_version.py",
+  "*/version_pioneer/_version.py",
+  "*/version_pioneer/build/*",  # build is tested separately, and it doesn't count towards coverage
 ]
 
 [tool.pyright]
