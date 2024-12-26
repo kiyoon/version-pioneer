@@ -1,0 +1,9 @@
+# Test functionality with the minimum required dependencies for pytest.
+# However, doctest needs all dev dependencies because it imports every module.
+-r requirements.in
+
+pytest
+pytest-cov
+verboselogs
+# build
+wheel

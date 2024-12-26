@@ -34,14 +34,10 @@ pygments==2.18.0
     # via rich
 pytest==8.3.4
     # via
-    #   -r requirements-dev.in
+    #   -r requirements-pytest.in
     #   pytest-cov
 pytest-cov==5.0.0
-    # via pytest-cover
-pytest-cover==3.0.0
-    # via pytest-coverage
-pytest-coverage==0.0
-    # via -r requirements-dev.in
+    # via -r requirements-pytest.in
 rich==13.9.4
     # via typer
 setuptools==75.3.0
@@ -64,10 +60,12 @@ typing-extensions==4.12.2
     #   rich
     #   typer
 verboselogs==1.7
-    # via -r requirements-cli.in
+    # via
+    #   -r requirements-cli.in
+    #   -r requirements-pytest.in
 wheel==0.45.1
     # via
     #   -r requirements-cli.in
-    #   -r requirements-dev.in
+    #   -r requirements-pytest.in
 zipp==3.20.2
     # via importlib-metadata
