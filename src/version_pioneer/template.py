@@ -60,7 +60,6 @@ NO_VENDOR_VERSIONSCRIPT = textwrap.dedent("""
             cwd=cwd,
             style="pep440",
             tag_prefix="v",
-            parentdir_prefix=None,
         )
 
 

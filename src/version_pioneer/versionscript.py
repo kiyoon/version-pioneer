@@ -34,6 +34,7 @@ Note:
 
 # ruff: noqa: T201 FA100
 
+import contextlib
 import errno
 import functools
 import os
@@ -88,6 +89,7 @@ class VersionPioneerConfig:
     # if there is no .git, like it's a source tarball downloaded from GitHub Releases,
     # find version from the name of the parent directory.
     # e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
+    # Set it to None to try to determine the prefix from pyproject.toml.
     parentdir_prefix: Optional[str] = None
     verbose: bool = False
 
@@ -853,37 +855,136 @@ def _find_root_dir_with_file(
     raise FileNotFoundError(f"File {marker} not found in any parent directory")
 
 
-def _versions_from_parentdir(
-    parentdir_prefix: str, root: "str | PathLike", *, verbose: bool = False
+def get_version_from_parentdir(
+    parentdir_prefix: "str | None", cwd: "str | PathLike", *, verbose: bool = False
 ) -> VersionDict:
     """
     Try to determine the version from the parent directory name.
 
     Source tarballs conventionally unpack into a directory that includes both the project name and a version string.
+
+    If parentdir_prefix is None, it will try to determine the parentdir_prefix from pyproject.toml.
     """
     rootdirs = []
 
     # First find a directory with `pyproject.toml`, `setup.cfg`, or `setup.py`
-    root = _find_root_dir_with_file(root, ["pyproject.toml", "setup.cfg", "setup.py"])
+    root = _find_root_dir_with_file(cwd, ["pyproject.toml", "setup.cfg", "setup.py"])
 
-    # It's likely that the root is the parent directory of the package,
-    # but in some cases like multiple languages, mono-repo, etc. it may not be.
-    for _ in range(3):
-        dirname = root.name
-        if dirname.startswith(parentdir_prefix):
-            return {
-                "version": dirname[len(parentdir_prefix) :],
-                "full_revisionid": None,
-                "dirty": False,
-                "error": None,
-                "date": None,
-            }
-        rootdirs.append(root)
-        root = root.parent
+    def try_parentdir(root: Path, parentdir_prefix: str) -> "VersionDict | None":
+        # It's likely that the root is the parent directory of the package,
+        # but in some cases like multiple languages, mono-repo, etc. it may not be.
+        for _ in range(3):
+            dirname = root.name
+            if dirname.startswith(parentdir_prefix):
+                return {
+                    "version": dirname[len(parentdir_prefix) :],
+                    "full_revisionid": None,
+                    "dirty": False,
+                    "error": None,
+                    "date": None,
+                }
+            rootdirs.append(root)
+
+            if root.parent.samefile(root):
+                break
+            root = root.parent
+
+        return None
+
+    def get_prefix_from_source_url(source_url: str) -> "str | None":
+        if not source_url.startswith(
+            "https://github.com/"
+        ) and not source_url.startswith("https://gitlab.com/"):
+            return None
+
+        # Remove trailing .git
+        if source_url.endswith(".git"):
+            source_url = source_url[:-4]
+
+        # Last part of the URL plus a hyphen
+        return source_url.split("/")[-1] + "-"
+
+    def try_parentdir_from_source_url(source_url: str) -> "VersionDict | None":
+        prefix = get_prefix_from_source_url(source_url)
+        if prefix:
+            version_dict = try_parentdir(root, prefix)
+            if version_dict:
+                return version_dict
+        return None
+
+    def try_all_parentdir_in_pyproject_toml(pyproject: dict) -> "VersionDict | None":
+        with contextlib.suppress(KeyError):
+            version_dict = try_parentdir_from_source_url(
+                pyproject["project"]["urls"]["homepage"]
+            )
+            if version_dict:
+                return version_dict
+        with contextlib.suppress(KeyError):
+            version_dict = try_parentdir_from_source_url(
+                pyproject["project"]["urls"]["Homepage"]
+            )
+            if version_dict:
+                return version_dict
+        with contextlib.suppress(KeyError):
+            version_dict = try_parentdir_from_source_url(
+                pyproject["project"]["urls"]["source"]
+            )
+            if version_dict:
+                return version_dict
+        with contextlib.suppress(KeyError):
+            version_dict = try_parentdir_from_source_url(
+                pyproject["project"]["urls"]["Source"]
+            )
+            if version_dict:
+                return version_dict
+            return None
+        with contextlib.suppress(KeyError):
+            return try_parentdir(root, pyproject["project"]["name"] + "-")
+
+    if parentdir_prefix is None:
+        # NOTE: New in Version-Pioneer
+        # Automatically determine the parentdir_prefix from pyproject.toml
+        # 1. project.urls.Homepage
+        # homepage / Homepage / source / Source -> if https://github.com/ -> remove trailing .git
+        """
+        # numpy example
+        [project.urls]
+        homepage = "https://numpy.org"
+        documentation = "https://numpy.org/doc/"
+        source = "https://github.com/numpy/numpy"
+        download = "https://pypi.org/project/numpy/#files"
+        tracker = "https://github.com/numpy/numpy/issues"
+        "release notes" = "https://numpy.org/doc/stable/release"
+        """
+        # NOTE: 2. project.name
+        """
+        [project]
+        name = "version-pioneer"
+        """
+
+        if sys.version_info >= (3, 11):
+            import tomllib
+        else:
+            try:
+                import tomli as tomllib
+            except ModuleNotFoundError as e:
+                raise ModuleNotFoundError(
+                    "tomli not found. Install it with `pip install tomli`"
+                ) from e
+
+        with open(root / "pyproject.toml", "rb") as f:
+            pyproject = tomllib.load(f)
+        version_dict = try_all_parentdir_in_pyproject_toml(pyproject)
+
+    else:
+        version_dict = try_parentdir(root, parentdir_prefix)
+
+    if version_dict:
+        return version_dict
 
     if verbose:
         print(
-            f"Tried directories {rootdirs!s} but none started with prefix {parentdir_prefix}"
+            f"Tried directories {rootdirs!s} but none started with prefix {parentdir_prefix or '<auto>'}"
         )
     raise NotThisMethodError("rootdir doesn't start with parentdir_prefix")
 
@@ -943,15 +1044,11 @@ def get_version_from_pkg_info(cwd: "str | PathLike") -> VersionDict:
         }
 
 
-def get_version_dict_from_vcs(
+def get_version_dict_with_all_methods(
     cfg: "VersionPioneerConfig | None" = None, *, cwd: "str | PathLike | None" = None
 ) -> VersionDict:
     """
-    Get version information from Git tags or parent directory as a fallback.
-
-    Note:
-        DO NOT change the signature of this function. Version-Pioneer customises call to this function during build,
-        because sometimes build operation works in a different directory.
+    Get version information from PKG-INFO, Git tags or parent directory as a fallback.
     """
     if cfg is None:
         cfg = VersionPioneerConfig()
@@ -971,13 +1068,12 @@ def get_version_dict_from_vcs(
     except NotThisMethodError:
         pass
 
-    if cfg.parentdir_prefix is not None:
-        try:
-            return _versions_from_parentdir(
-                cfg.parentdir_prefix, cwd, verbose=cfg.verbose
-            )
-        except NotThisMethodError:
-            pass
+    try:
+        return get_version_from_parentdir(
+            cfg.parentdir_prefix, cwd, verbose=cfg.verbose
+        )
+    except NotThisMethodError:
+        pass
 
     return {
         "version": "0+unknown",
@@ -990,7 +1086,7 @@ def get_version_dict_from_vcs(
 
 # IMPORTANT: However you customise the file, make sure the following function is defined!
 def get_version_dict() -> VersionDict:
-    return get_version_dict_from_vcs()
+    return get_version_dict_with_all_methods()
 
 
 if __name__ == "__main__":

@@ -87,7 +87,6 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
             cwd=cwd,
             style="pep440",
             tag_prefix="v",
-            parentdir_prefix=None,
         )
     ```
 
@@ -227,6 +226,7 @@ class VersionPioneerConfig:
     - See Versioneer for more styles (or read documentation in _version.py).
 - `tag_prefix`: tag to look for in git for the reference version.
 - `parentdir_prefix`: if there is no .git, like it's a source tarball downloaded from GitHub Releases, find version from the name of the parent directory. e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
+    - 🔍 Set to None to automatically inferred from pyproject.toml's GitHub/GitLab URL or project name. (New in Version-Pioneer)
 - `verbose`: print debug messages.
 
 If you want to customise the logic, you can modify the entire script. However you modify the script, remember that this file has to be able to run like a standalone script without any other dependencies (like package, files, config, etc.).

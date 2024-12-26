@@ -23,7 +23,7 @@ from version_pioneer.versionscript import (
     VERSION_STYLE_TYPE,
     VersionPioneerConfig,
     VersionStyle,
-    get_version_dict_from_vcs,
+    get_version_dict_with_all_methods,
 )
 
 
@@ -112,7 +112,8 @@ def get_version_dict_wo_exec(
     so you don't care about re-evaluating the version file.
 
     Args:
-        parentdir_prefix: The prefix of the parent directory. (e.g. {github_repo_name}-)
+        parentdir_prefix: The prefix of the parent directory. (e.g. {github-repo-name}-)
+            None refers auto-detection from pyproject.toml.
     """
     cfg = VersionPioneerConfig(
         style=VersionStyle(style),
@@ -121,7 +122,7 @@ def get_version_dict_wo_exec(
         verbose=verbose,
     )
 
-    version_dict = get_version_dict_from_vcs(
+    version_dict = get_version_dict_with_all_methods(
         cfg, cwd=Path.cwd() if cwd is None else cwd
     )
     return version_dict
