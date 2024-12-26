@@ -272,16 +272,16 @@ class GitPieces:
     long: str
     short: str
     branch: str
-    closest_fulltag: Optional[str]  # include tag_prefix (v1.0.0)
-    closest_tag: Optional[str]  # strip tag_prefix (1.0.0)
-    distance: int
     dirty: bool
-    error: Optional[str]
 
     # options to pass to GitMasterDistance
     cwd: Union[str, PathLike]
     verbose: bool
 
+    error: Optional[str] = None
+    distance: Optional[int] = None
+    closest_fulltag: Optional[str] = None  # include tag_prefix (v1.0.0)
+    closest_tag: Optional[str] = None  # strip tag_prefix (1.0.0)
     date: Optional[str] = None
 
     @classmethod
@@ -410,6 +410,7 @@ class GitPieces:
 
         else:
             # HEX: no tags
+            pieces["closest_fulltag"] = None
             pieces["closest_tag"] = None
             out, rc = runner(
                 GIT_COMMANDS, ["rev-list", "HEAD", "--left-right"], cwd=cwd
