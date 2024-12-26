@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.0.6] - 2024-12-26
+### :boom: BREAKING CHANGES
+- due to [`12aac03`](https://github.com/kiyoon/version-pioneer/commit/12aac0377034c03df11222d32a16c93d21fa9eaf) - new pep440-master, change pep440-post *(commit by [@kiyoon](https://github.com/kiyoon))*:
+
+  new pep440-master, change pep440-post
+
+
+### :sparkles: New Features
+- [`12aac03`](https://github.com/kiyoon/version-pioneer/commit/12aac0377034c03df11222d32a16c93d21fa9eaf) - new pep440-master, change pep440-post *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+### :bug: Bug Fixes
+- [`56d75f5`](https://github.com/kiyoon/version-pioneer/commit/56d75f536cad2b398cb578639e58ae862b0cdc83) - optional default *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+### :wrench: Chores
+- [`7c5af53`](https://github.com/kiyoon/version-pioneer/commit/7c5af532f345237d65c150cfb6492d8a1b7c3288) - lint fix *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v0.0.5] - 2024-12-26
 ### :boom: BREAKING CHANGES
 - due to [`257069f`](https://github.com/kiyoon/version-pioneer/commit/257069f98a38affc0817094adb88599034f712cf) - consistent naming (version_pioneer_core -> versionscript) and improve docs *(commit by [@kiyoon](https://github.com/kiyoon))*:
@@ -50,3 +67,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.0.3]: https://github.com/kiyoon/version-pioneer/compare/v0.0.2...v0.0.3
 [v0.0.4]: https://github.com/kiyoon/version-pioneer/compare/v0.0.3...v0.0.4
 [v0.0.5]: https://github.com/kiyoon/version-pioneer/compare/v0.0.4...v0.0.5
+[v0.0.6]: https://github.com/kiyoon/version-pioneer/compare/v0.0.5...v0.0.6
