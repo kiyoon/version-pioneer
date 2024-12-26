@@ -50,6 +50,7 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 - ⭕ Works with any build backend with hooks.
 - 🦀 Works with any language, not just Python.
     - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+- 🔢 New version formats like `"pep440-master"` that shows the distance from the tag to master/main, and the master to the current branch.
 - </> API provided for complete non-vendored mode support.
     - With Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
 - 💻 CLI tool to get version string, execute the `_version.py` versionscript, and test your setup.
@@ -214,9 +215,12 @@ class VersionPioneerConfig:
     verbose: bool = False
 ```
 
-- `style`: similar to Versioneer's `style` option. Two major styles are:
-    - `VersionStyle.pep440`: "1.2.3+4.gxxxxxxx.dirty" (default)
-    - `VersionStyle.digits`: "1.2.3.5"
+- `style`: similar to Versioneer's `style` option. Three major styles are:
+    - `pep440`: "1.2.3+4.gxxxxxxx.dirty" (default)
+    - `pep440-master`: "1.2.3+4.gxxxxxxx.5.gxxxxxxx.dirty"
+        - Shows the distance from the tag to master/main, and the master to the current branch.
+        - Useful when you mainly work on a branch and merge to master/main.
+    - `digits`: "1.2.3.5"
         - Digits-only version string.
         - The last number is the distance from the tag (dirty is counted as 1, thus 5 in this example).
         - Useful for multi-language projects, Chrome Extension, etc.
