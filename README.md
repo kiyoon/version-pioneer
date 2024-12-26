@@ -44,13 +44,15 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 
 **🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
 
-- **Highly customisable**: It's an easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
-- Runs with Python 3.8+
-- No dependencies like package, config file etc. It runs with one python file. 
-- Works with any build backend with hooks.
-- Works with any language, not just Python.
-- Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
-- Complete non-vendored mode support. With the original Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
+- 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
+- 🐍 Runs with Python 3.8+
+- ❌📦 No dependencies like package, config file etc. It runs with one python file. 
+- ⭕ Works with any build backend with hooks.
+- 🦀 Works with any language, not just Python.
+    - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+- </> API provided for complete non-vendored mode support.
+    - With Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
+- 💻 CLI tool to get version string, execute the `_version.py` versionscript, and test your setup.
 
 
 ## 🏃 Quick Start (script not vendored, with build backend plugins)
