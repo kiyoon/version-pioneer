@@ -181,9 +181,7 @@ class GitMasterDistance:
     current_branch: str
     distance_from_tag_to_master: int
     distance_from_master: int
-    master_commit: Optional[str] = (
-        None  # None means probably the tag is master and no further commits from master.
-    )
+    master_commit: str
 
     @property
     def master_commit_short(self) -> "str | None":
@@ -251,6 +249,24 @@ class GitMasterDistance:
                 break
 
             distance_from_master += 1
+
+        if master_commit is None:
+            # Can't find master? We assume that it's the tag. It may not always be. (like release branch)
+            if tag_of_interest is None:
+                if verbose:
+                    print(
+                        "No tag found and none of the commit history points to master/main."
+                    )
+                    print("Maybe detached head or you don't use master?")
+                raise NotThisMethodError(
+                    "No tag found and none of the commit history points to master/main. "
+                    "Maybe detached head or you don't use master?"
+                )
+
+            out, re = git_runner(["rev-list", "-1", tag_of_interest], cwd=cwd)
+            master_commit = out.strip()
+            if len(master_commit) != 40:
+                raise NotThisMethodError("Something is strange in you git commit hash")
 
         return cls(
             current_branch=current_branch,
@@ -470,9 +486,10 @@ class GitPieces:
         meaning 4 commits from v1.2.3 to master, and 5 commits from master to the current branch.
 
         Exceptions:
-            1: no tags. git_describe was just HEX. 0+untagged.MASTERDISTANCE.gMASTERHEX.BRANCHDIST.gHEX[.dirty]
-            2: master = tag. TAG[+DISTANCE.gHEX[.dirty]] just like PEP440 style.
-            3: current branch is master. Just like PEP440 style.
+            1. no tags. git_describe was just HEX. 0+untagged.MASTERDISTANCE.gMASTERHEX.BRANCHDIST.gHEX[.dirty]
+            2. current branch is master. Just like PEP440 style.
+            3. if no master is found after the tag, we assume tag = master. (TAG+0.gTAGHEX.BRANCHDIST.gHEX[.dirty])
+                - the logic is in GitMasterDistance.from_git()
 
         Note:
             - New in Version-Pioneer.
@@ -482,17 +499,15 @@ class GitPieces:
                 tag_of_interest=self.closest_fulltag, cwd=self.cwd, verbose=self.verbose
             )
         except CurrentBranchIsMasterError:
-            # exception #3
-            return self._render_pep440()
-
-        if self.verbose:
-            print(f"{master_info = }")
-
-        if master_info.master_commit is None:
             # exception #2
             return self._render_pep440()
 
-        assert master_info.distance_from_tag_to_master > 0
+        if (
+            master_info.distance_from_tag_to_master == 0
+            and master_info.distance_from_master == 0
+        ):
+            # Just the tag
+            return self.closest_tag or "0+untagged"
 
         if self.closest_tag:
             rendered = self.closest_tag

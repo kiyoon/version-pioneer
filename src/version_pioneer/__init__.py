@@ -12,29 +12,15 @@ from importlib.metadata import Distribution, PackageNotFoundError
 from os import PathLike
 from pathlib import Path
 
+from ._version import get_version_dict as _get_version_dict
+
+__version__ = _get_version_dict()["version"]
+
 logger = logging.getLogger(__name__)
 
 APP_NAME = __name__
 APP_NAME_UPPER = APP_NAME.upper()
 PACKAGE_NAME = APP_NAME.replace("_", "-")
-
-
-def _version_pioneer_version():
-    """
-    Wrapper to avoid exposing the `get_version_dict` method which might confuse the users.
-    """
-    # NOTE: The _version.py is generated during the build process
-    try:
-        # If the package is installed as standard, the _version.py file is generated.
-        from ._version import get_version_dict
-    except ModuleNotFoundError:
-        # If the package is installed as editable, the _version.py file doesn't exist.
-        from .versionscript import get_version_dict
-
-    return get_version_dict()["version"]
-
-
-__version__ = _version_pioneer_version()
 
 
 def setup_logging(
