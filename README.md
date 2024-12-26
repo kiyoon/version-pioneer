@@ -98,6 +98,9 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
     __version__ = get_version_dict()["version"]
     ```
 
+> [!TIP]
+> Use `version-pioneer install --no-vendor` CLI command to perform the step 2 and 3 automatically.
+
 4. Configure your build backend to execute `_version.py` and use the version string. Setuptools, Hatchling and PDM are supported.
 
 📦 Setuptools:
