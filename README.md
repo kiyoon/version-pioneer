@@ -309,7 +309,6 @@ Add `hatch_build.py` to the project root.
 ```python
 from __future__ import annotations
 
-import stat
 import sys
 import tempfile
 import textwrap
