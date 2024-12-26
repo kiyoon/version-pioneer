@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.0.7] - 2024-12-26
+### :bug: Bug Fixes
+- [`8362089`](https://github.com/kiyoon/version-pioneer/commit/836208963b1bcff97479ddba0fcebe962735b377) - inconsistency in pep440-master *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v0.0.6] - 2024-12-26
 ### :boom: BREAKING CHANGES
 - due to [`12aac03`](https://github.com/kiyoon/version-pioneer/commit/12aac0377034c03df11222d32a16c93d21fa9eaf) - new pep440-master, change pep440-post *(commit by [@kiyoon](https://github.com/kiyoon))*:
@@ -68,3 +73,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.0.4]: https://github.com/kiyoon/version-pioneer/compare/v0.0.3...v0.0.4
 [v0.0.5]: https://github.com/kiyoon/version-pioneer/compare/v0.0.4...v0.0.5
 [v0.0.6]: https://github.com/kiyoon/version-pioneer/compare/v0.0.5...v0.0.6
+[v0.0.7]: https://github.com/kiyoon/version-pioneer/compare/v0.0.6...v0.0.7
