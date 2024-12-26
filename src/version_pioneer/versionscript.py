@@ -870,11 +870,13 @@ def get_version_from_parentdir(
     # First find a directory with `pyproject.toml`, `setup.cfg`, or `setup.py`
     root = _find_root_dir_with_file(cwd, ["pyproject.toml", "setup.cfg", "setup.py"])
 
-    def try_parentdir(root: Path, parentdir_prefix: str) -> "VersionDict | None":
+    def try_parentdir(
+        project_root: Path, parentdir_prefix: str
+    ) -> "VersionDict | None":
         # It's likely that the root is the parent directory of the package,
         # but in some cases like multiple languages, mono-repo, etc. it may not be.
         for _ in range(3):
-            dirname = root.name
+            dirname = project_root.name
             if dirname.startswith(parentdir_prefix):
                 return {
                     "version": dirname[len(parentdir_prefix) :],
@@ -883,11 +885,11 @@ def get_version_from_parentdir(
                     "error": None,
                     "date": None,
                 }
-            rootdirs.append(root)
+            rootdirs.append(project_root)
 
-            if root.parent.samefile(root):
+            if project_root.parent.samefile(project_root):
                 break
-            root = root.parent
+            project_root = project_root.parent
 
         return None
 
