@@ -7,7 +7,12 @@
 # NOTE: type | None only works in Python 3.10+ with typer, so we use Optional instead.
 
 try:
+    import rich
     import typer
+    from rich.prompt import Confirm
+    from rich.syntax import Syntax
+
+    from .docstring import from_docstring
 except ModuleNotFoundError:
     print("⚠️ CLI dependencies are not installed.")
     print("Please install Version-Pioneer with `pip install 'version-pioneer[cli]'`.")
@@ -21,16 +26,10 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-import rich
-from rich.prompt import Confirm
-from rich.syntax import Syntax
-
 from version_pioneer.template import INIT_PY, NO_VENDOR_VERSIONSCRIPT, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
 from version_pioneer.utils.version_script import ResolutionFormat
 from version_pioneer.versionscript import VersionStyle
-
-from .docstring import from_docstring
 
 if sys.version_info < (3, 9):
     from typing_extensions import Annotated
