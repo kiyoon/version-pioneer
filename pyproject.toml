@@ -74,6 +74,7 @@ log_cli_level = "INFO"
 omit = [
   "*/version_pioneer/_version.py",
   "*/version_pioneer/build/*",  # build is tested separately, and it doesn't count towards coverage
+  "*/version_pioneer/cli/*",    # cli is hard to test, so we focus more on api testing which CLI depends on
 ]
 
 [tool.pyright]
