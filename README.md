@@ -50,6 +50,11 @@ The original versioneer is 99% boilerplate code to make it work with all legacy 
 - ⭕ Works with any build backend with hooks.
 - 🦀 Works with any language, not just Python.
     - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+- 🩹 Can resolve version even when the git info is missing.
+    - Downloaded from GitHub Releases? Read from the directory name.
+        - The `parentdir_prefix` is automatically resolved from `pyproject.toml`'s source URL etc.
+    - sdist built without writing a resolved versionfile?
+        - Read from PKG-INFO. 
 - 🔢 New version formats like `"pep440-master"` that shows the distance from the tag to master/main, and the master to the current branch.
 - </> API provided for complete non-vendored mode support.
     - With Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
