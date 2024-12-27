@@ -964,20 +964,24 @@ def get_version_from_parentdir(
         name = "version-pioneer"
         """
 
-        if sys.version_info >= (3, 11):
-            import tomllib
-        else:
-            try:
+        try:
+            if sys.version_info >= (3, 11):
+                import tomllib
+            else:
                 import tomli as tomllib
-            except ModuleNotFoundError as e:
-                raise ModuleNotFoundError(
-                    "tomli not found. Install it with `pip install tomli`"
-                ) from e
-
+        except ModuleNotFoundError as e:
+            if verbose:
+                print(
+                    "tomli not found. Please install tomli or use Python 3.11 to "
+                    "automatically determine the parentdir_prefix from pyproject.toml"
+                )
+            raise NotThisMethodError(
+                "tomli not found. Please install tomli or use Python 3.11 to "
+                "automatically determine the parentdir_prefix from pyproject.toml"
+            ) from e
         with open(root / "pyproject.toml", "rb") as f:
             pyproject = tomllib.load(f)
         version_dict = try_all_parentdir_in_pyproject_toml(pyproject)
-
     else:
         version_dict = try_parentdir(root, parentdir_prefix)
 
