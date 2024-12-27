@@ -12,54 +12,24 @@
 | [![pytest](https://img.shields.io/badge/pytest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/pytest-dev/pytest) [![doctest](https://img.shields.io/badge/doctest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://docs.python.org/3/library/doctest.html) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Tests/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) [![codecov](https://codecov.io/gh/kiyoon/version-pioneer/graph/badge.svg?token=QS5JX9VTPM)](https://codecov.io/gh/kiyoon/version-pioneer) |
 | [![uv](https://img.shields.io/badge/uv-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/astral-sh/uv) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Check%20pip%20compile%20sync/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) |
 
-## Background
-
-[Versioneer](https://github.com/python-versioneer/python-versioneer) finds the closest git tag like `v1.2.3` and generates a version string like `1.2.3+4.gxxxxxxx.dirty`.
-
-- `1.2.3` is the closest git tag.
-- `+4` is the number of commits since the tag.
-- `gxxxxxxx` is the git commit hash (without the leading `g`).
-- `.dirty` is appended if the working directory is dirty (i.e. has uncommitted changes).
-
-[setuptools-scm](https://github.com/pypa/setuptools-scm) is a similar tool, but with some differences:
-
-- How the version string is rendered: `1.2.3+4.gxxxxxxx.dirty` vs `1.2.4.dev4+gxxxxxxx`
-    - No `.dirty` in setuptools-scm.
-    - Infer the next version number (i.e. 1.2.4 instead of 1.2.3).
-- The `_version.py` file is always a constant in setuptools-scm.
-    - Versioneer can dynamically generate the version string at runtime, so it's always up-to-date. Useful for development (pip install -e .).
-    - Setuptools-scm won't ever change the version string after installation. You need to reinstall to update the version string.
-
-
-## ❓ Why this fork?
-
-I have used versioneer for years, and I like the format and dynamic resolution of versions for development. However,
-
-1. It doesn't support any build backends other than `setuptools` (like `pdm`, `hatchling`, `poetry`, `maturin`, `scikit-build`, etc.)
-2. It doesn't support projects that are not Python (like Rust, Chrome Extension, etc.).
-
-Every time I had to figure out how to integrate a new VCS versioning plugin but they all work differently and produce different version strings. GitHub Actions and other tools may not work with all different version format. Different language usually expects different format, and it's especially hard to make it compatible for mixed language projects.
-
-The original versioneer is 99% boilerplate code to make it work with all legacy setuptools configurations, trying to "generate" code depending on the configuration, etc.. But the core functionality is simple: just get version from git tag and format it. I had to leverage this logic to integrate Versioneer in every project I had.
-
-**🧗🏽  Version-Pioneer is a general-purpose Versioneer that works with any language and any build system.**
+**🧗🏽  Version-Pioneer is a general-purpose Git tag-based version manager that works with any language and any build system.**
 
 - 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
 - 🐍 Runs with Python 3.8+
 - ❌📦 No dependencies like package, config file etc. It runs with one python file. 
 - ⭕ Works with any build backend with hooks.
 - 🦀 Works with any language, not just Python.
-    - Support for new version formats like `"digits"` that generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+    - Version format `"digits"` generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
 - 🩹 Can resolve version even when the git info is missing.
     - Downloaded from GitHub Releases? Read from the directory name.
         - The `parentdir_prefix` is automatically resolved from `pyproject.toml`'s source URL etc.
     - sdist built without writing a resolved versionfile?
         - Read from PKG-INFO. 
 - 🔢 New version formats like `"pep440-master"` that shows the distance from the tag to master/main, and the master to the current branch.
+    - E.g. `1.2.3+4.gxxxxxxx.5.gxxxxxxx`
 - </> API provided for complete non-vendored mode support.
     - With Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
 - 💻 CLI tool to get version string, execute the `_version.py` versionscript, and test your setup.
-
 
 ## 🏃 Quick Start (script not vendored, with build backend plugins)
 
@@ -184,6 +154,8 @@ def get_version_dict():
 
 > [!TIP]
 > Use `version-pioneer install` or `version-pioneer print-versionscript-code` CLI commands that helps you install (vendor) the `versionscript.py` file to your project.
+
+
 
 
 ## 🛠️ Configuration
@@ -611,6 +583,34 @@ Therefore, `versionfile-sdist` takes precedence (if it exists) over `versionscri
     - Instead, the `version="0.1.0"` (whatever it is during the build) is written.
 - However, the build hook can still change the metadata version, thus the versionfile / versionscript is still executed.
     - It will be the versionfile that is already resolved, so the version string is consistent.
+
+
+## ❓ Why this fork?
+
+[Versioneer](https://github.com/python-versioneer/python-versioneer) finds the closest git tag like `v1.2.3` and generates a version string like `1.2.3+4.gxxxxxxx.dirty`.
+
+- `1.2.3` is the closest git tag.
+- `+4` is the number of commits since the tag.
+- `gxxxxxxx` is the git commit hash (without the leading `g`).
+- `.dirty` is appended if the working directory is dirty (i.e. has uncommitted changes).
+
+[setuptools-scm](https://github.com/pypa/setuptools-scm) is a similar tool, but with some differences:
+
+- How the version string is rendered: `1.2.3+4.gxxxxxxx.dirty` vs `1.2.4.dev4+gxxxxxxx`
+    - No `.dirty` in setuptools-scm.
+    - Infer the next version number (i.e. 1.2.4 instead of 1.2.3).
+- The `_version.py` file is always a constant in setuptools-scm.
+    - Versioneer can dynamically generate the version string at runtime, so it's always up-to-date. Useful for development (pip install -e .).
+    - Setuptools-scm won't ever change the version string after installation. You need to reinstall to update the version string.
+
+I have used versioneer for years, and I like the format and dynamic resolution of versions for development. However,
+
+1. It doesn't support any build backends other than `setuptools` (like `pdm`, `hatchling`, `poetry`, `maturin`, `scikit-build`, etc.)
+2. It doesn't support projects that are not Python (like Rust, Chrome Extension, etc.).
+
+Every time I had to figure out how to integrate a new VCS versioning plugin but they all work differently and produce different version strings. GitHub Actions and other tools may not work with all different version format. Different language usually expects different format, and it's especially hard to make it compatible for mixed language projects.
+
+The original versioneer is 99% boilerplate code to make it work with all legacy setuptools configurations, trying to "generate" code depending on the configuration, etc.. But the core functionality is simple: just get version from git tag and format it. I had to leverage this logic to integrate Versioneer in every project I had.
 
 ## 🚧 Development
 
