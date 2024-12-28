@@ -12,21 +12,23 @@
 | [![pytest](https://img.shields.io/badge/pytest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/pytest-dev/pytest) [![doctest](https://img.shields.io/badge/doctest-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://docs.python.org/3/library/doctest.html) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Tests/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) [![codecov](https://codecov.io/gh/kiyoon/version-pioneer/graph/badge.svg?token=QS5JX9VTPM)](https://codecov.io/gh/kiyoon/version-pioneer) |
 | [![uv](https://img.shields.io/badge/uv-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://github.com/astral-sh/uv) | [![Actions status](https://github.com/kiyoon/version-pioneer/workflows/Check%20pip%20compile%20sync/badge.svg)](https://github.com/kiyoon/version-pioneer/actions) |
 
-**🧗🏽  Version-Pioneer is a general-purpose Git tag-based version manager that works with any language and any build system.**
+**General-purpose Git tag-based version manager that works with any language and any build system.**
 
-- 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. Literally a simple python script which you can customise version format or anything as you need.
+- 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. Literally a simple Python script in which you can customise the version format or anything you need.
 - 🐍 Runs with Python 3.8+
-- ❌📦 No dependencies like package, config file etc. It runs with one python file. 
-- ⭕ Works with any build backend with hooks.
+- ❌📦 No dependencies like package, config file etc. It runs with one Python file. 
+- ⭕ Works with any build backend with hooks. (Supports setuptools, hatchling, pdm)
 - 🦀 Works with any language, not just Python.
-    - Version format `"digits"` generates digits-only version string like `1.2.3.4` instead of `1.2.3+4.gxxxxxxx`. Useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+    - Version format `"digits"` generates digits-only version string which is useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
+    - CLI makes it easy to compute the version without vendoring anything in the project.
 - 🩹 Can resolve version even when the git info is missing.
     - Downloaded from GitHub Releases? Read from the directory name.
         - The `parentdir_prefix` is automatically resolved from `pyproject.toml`'s source URL etc.
     - sdist built without writing a resolved versionfile?
         - Read from PKG-INFO. 
-- 🔢 New version formats like `"pep440-master"` that shows the distance from the tag to master/main, and the master to the current branch.
-    - E.g. `1.2.3+4.gxxxxxxx.5.gxxxxxxx`
+- 🔢 New version formats:
+    - `"pep440-master"`: shows the distance from the tag to master/main, and the master to the current branch. (e.g. 1.2.3&#8203;**+4.gxxxxxxx**&#8203;_.5.gxxxxxxx_ )
+    - `"digits"`: the distance and dirty information compiled to the last digit. (e.g. 1.2.3&#8203;**.4**)
 - </> API provided for complete non-vendored mode support.
     - With Versioneer you still had to install a `_version.py` script in your project, but Version-Pioneer is able to be installed as a package.
 - 💻 CLI tool to get version string, execute the `_version.py` versionscript, and test your setup.
