@@ -6,7 +6,7 @@ This "versionscript" may be replaced with a much shorter "versionfile" in distri
 (built by `uv build`, `pyproject-build`) that just contains one method:
 `def get_version_dict() -> VersionDict: return {"version": "0.1.0", ...}`.
 
-Refactored from Versioneer's _version.py (for git).
+Refactored from Versioneer's _version.py.
 
 Note:
     - Should be compatible with python 3.8+ without any dependencies.
