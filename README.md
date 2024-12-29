@@ -14,7 +14,7 @@
 
 **General-purpose Git tag-based version manager that works with any language and any build system.**
 
-- 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. [Literally a simple Python script](src/version-pioneer/versionscript.py) in which you can customise the version format or anything you need.
+- 🧑‍🍳 **Highly customisable**: It's an easy-to-read script. [Literally a simple Python script](src/version_pioneer/versionscript.py) in which you can customise the version format or anything you need.
 - 🐍 Runs with Python 3.8+
 - ❌📦 No dependencies like package, config file etc. It runs with one Python file. 
 - ⭕ Works with any build backend with hooks. (Supports setuptools, hatchling, pdm)
