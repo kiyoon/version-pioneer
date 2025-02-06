@@ -133,6 +133,39 @@ env = os.environ.copy()
 env.pop("GIT_DIR", None)
 
 
+# https://github.com/pypa/packaging/blob/24.2/src/packaging/version.py#L117-L146
+_VERSION_PATTERN = r"""
+    v?
+    (?:
+        (?:(?P<epoch>[0-9]+)!)?                           # epoch
+        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
+        (?P<pre>                                          # pre-release
+            [-_\.]?
+            (?P<pre_l>alpha|a|beta|b|preview|pre|c|rc)
+            [-_\.]?
+            (?P<pre_n>[0-9]+)?
+        )?
+        (?P<post>                                         # post release
+            (?:-(?P<post_n1>[0-9]+))
+            |
+            (?:
+                [-_\.]?
+                (?P<post_l>post|rev|r)
+                [-_\.]?
+                (?P<post_n2>[0-9]+)?
+            )
+        )?
+        (?P<dev>                                          # dev release
+            [-_\.]?
+            (?P<dev_l>dev)
+            [-_\.]?
+            (?P<dev_n>[0-9]+)?
+        )?
+    )
+    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
+"""
+
+
 class NotThisMethodError(Exception):
     """Exception raised if a method is not valid for the current scenario."""
 
@@ -884,13 +917,15 @@ def get_version_from_parentdir(
         for _ in range(3):
             dirname = project_root.name
             if dirname.startswith(parentdir_prefix):
-                return {
-                    "version": dirname[len(parentdir_prefix) :],
-                    "full_revisionid": None,
-                    "dirty": False,
-                    "error": None,
-                    "date": None,
-                }
+                version_candidate = dirname[len(parentdir_prefix) :]
+                if re.match(_VERSION_PATTERN, version_candidate):
+                    return {
+                        "version": version_candidate,
+                        "full_revisionid": None,
+                        "dirty": False,
+                        "error": None,
+                        "date": None,
+                    }
             rootdirs.append(project_root)
 
             if project_root.parent.samefile(project_root):
