@@ -295,9 +295,9 @@ def build_consistency_test(
     sdist_combined_version = _get_wheel_package_version(sdist_combined)
     sdist_separate_version = _get_wheel_package_version(sdist_separate)
     if expected_version is not None:
-        assert (
-            wheel_combined_version == expected_version
-        ), f"❌ Expected version {expected_version}, but got {wheel_combined_version}"
+        assert wheel_combined_version == expected_version, (
+            f"❌ Expected version {expected_version}, but got {wheel_combined_version}"
+        )
     if not (
         wheel_combined_version
         == wheel_separate_version
@@ -366,9 +366,9 @@ def build_consistency_test(
             capture_output=True,
             text=True,
         )
-        assert (
-            ps.returncode == 128
-        ), "❌ Your temp directory has a .git information. Not able to test properly..."
+        assert ps.returncode == 128, (
+            "❌ Your temp directory has a .git information. Not able to test properly..."
+        )
 
         output, builds = build_project(
             "--sdist", "--out-dir", temp_dir / "dist-chained", cwd=built_dir

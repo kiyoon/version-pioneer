@@ -107,9 +107,9 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
 
     err, _ = build_project(check=False)
 
-    assert (
-        "Missing key tool.version-pioneer.versionscript in pyproject.toml" in err
-    ), err
+    assert "Missing key tool.version-pioneer.versionscript in pyproject.toml" in err, (
+        err
+    )
 
     pyp.write_text(
         textwrap.dedent(f"""
@@ -135,9 +135,9 @@ def test_invalid_config(new_hatchling_project: Path, plugin_wheel: Path):
 
     err, _ = build_project(check=False)
 
-    assert (
-        "Missing key tool.version-pioneer.versionscript in pyproject.toml" in err
-    ), err
+    assert "Missing key tool.version-pioneer.versionscript in pyproject.toml" in err, (
+        err
+    )
 
 
 @pytest.mark.xfail(raises=VersionScriptResolutionError)

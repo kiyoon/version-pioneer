@@ -93,9 +93,9 @@ def setup_logging(
     else:
         PROJECT_DIR = None  # noqa: N806
 
-    assert len(output_files) == len(
-        file_levels
-    ), "output_files and file_levels must have the same length"
+    assert len(output_files) == len(file_levels), (
+        "output_files and file_levels must have the same length"
+    )
 
     if log_dir is None:
         output_files = []
