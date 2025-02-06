@@ -868,7 +868,12 @@ def get_version_from_parentdir(
     rootdirs = []
 
     # First find a directory with `pyproject.toml`, `setup.cfg`, or `setup.py`
-    root = _find_root_dir_with_file(cwd, ["pyproject.toml", "setup.cfg", "setup.py"])
+
+    try:
+        root = _find_root_dir_with_file(cwd, ["pyproject.toml", "setup.cfg", "setup.py"])
+    except FileNotFoundError as e:
+        raise NotThisMethodError from e
+
 
     def try_parentdir(
         project_root: Path, parentdir_prefix: str

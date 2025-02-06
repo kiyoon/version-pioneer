@@ -54,7 +54,8 @@ class VersionPioneerBuildHook(BuildHookInterface):
             print("Skipping writing a constant version file")
             return
         else:
-            self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=True)  # noqa: SIM115
+            # NOTE: Setting delete=True will delete too early on Windows
+            self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=False)  # noqa: SIM115
             version_dict = exec_version_script(versionscript)
             self.temp_version_file.write(
                 convert_version_dict(version_dict, output_format="python")
@@ -78,3 +79,4 @@ class VersionPioneerBuildHook(BuildHookInterface):
         if self.temp_version_file is not None:
             # Delete the temporary version file
             self.temp_version_file.close()
+            Path(self.temp_version_file.name).unlink()
