@@ -134,6 +134,14 @@ env.pop("GIT_DIR", None)
 
 
 # https://github.com/pypa/packaging/blob/24.2/src/packaging/version.py#L117-L146
+# Make parentdir-prefix only match version strings.
+# Example:
+#     the GitHub repo can be myprogram-python and the package name is myprogram,
+#     leading to parse "python" as a version string.
+#     So we restrict it to search myprogram-python-1.0.0 styled folders only.
+# Note:
+#     - The check passes version strings other than PEP440. This is good because there are projects other than Python.
+#     - Use with re.VERBOSE: `re.match(_VERSION_PATTERN, "1.0.0", re.VERBOSE)`
 _VERSION_PATTERN = r"""
     v?
     (?:
@@ -918,7 +926,7 @@ def get_version_from_parentdir(
             dirname = project_root.name
             if dirname.startswith(parentdir_prefix):
                 version_candidate = dirname[len(parentdir_prefix) :]
-                if re.match(_VERSION_PATTERN, version_candidate):
+                if re.match(_VERSION_PATTERN, version_candidate, re.VERBOSE):
                     return {
                         "version": version_candidate,
                         "full_revisionid": None,
