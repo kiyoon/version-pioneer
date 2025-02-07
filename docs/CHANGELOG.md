@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.0.12] - 2025-02-07
+### :bug: Bug Fixes
+- [`5cc0588`](https://github.com/kiyoon/version-pioneer/commit/5cc0588ac192511e0d715eb7826944b3c164d5af) - **parentdir_prefix**: wrong use of regex *(commit by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v0.0.11] - 2025-02-06
 ### :bug: Bug Fixes
 - [`dda1a30`](https://github.com/kiyoon/version-pioneer/commit/dda1a3079080a316ec40c03e898b160af47f9a21) - ensure version string to match PEP440 for parentdir *(commit by [@kiyoon](https://github.com/kiyoon))*
@@ -101,3 +106,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.0.9]: https://github.com/kiyoon/version-pioneer/compare/v0.0.8...v0.0.9
 [v0.0.10]: https://github.com/kiyoon/version-pioneer/compare/v0.0.9...v0.0.10
 [v0.0.11]: https://github.com/kiyoon/version-pioneer/compare/v0.0.10...v0.0.11
+[v0.0.12]: https://github.com/kiyoon/version-pioneer/compare/v0.0.11...v0.0.12
