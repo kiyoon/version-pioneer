@@ -7,20 +7,20 @@ from pathlib import Path
 from pdm.backend.hooks.base import Context
 
 from version_pioneer.utils.toml import get_toml_value
-from version_pioneer.utils.version_script import (
+from version_pioneer.utils.versionscript import (
     convert_version_dict,
-    exec_version_script,
-    find_version_script_from_pyproject_toml_dict,
+    exec_versionscript,
+    find_versionscript_from_pyproject_toml_dict,
 )
 
 
 class VersionPioneerBuildHook:
     def pdm_build_initialize(self, context: Context):
         # Update metadata version
-        versionscript = find_version_script_from_pyproject_toml_dict(
+        versionscript = find_versionscript_from_pyproject_toml_dict(
             context.config.data, either_versionfile_or_versionscript=True
         )
-        version_dict = exec_version_script(versionscript)
+        version_dict = exec_versionscript(versionscript)
         context.config.metadata["version"] = version_dict["version"]
 
         # Write the static version file

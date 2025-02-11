@@ -14,7 +14,7 @@ from version_pioneer.utils.files import (
     find_root_dir_with_file,
     remove_files_recusively,
 )
-from version_pioneer.utils.version_script import (
+from version_pioneer.utils.versionscript import (
     RESOLUTION_FORMAT_TYPE,
     ResolutionFormat,
     convert_version_dict,
@@ -31,7 +31,7 @@ class VersionMismatchError(Exception):
     pass
 
 
-def get_version_script_core_code():
+def get_versionscript_core_code():
     """Get the content of versionscript.py file."""
     from version_pioneer import __version__
     from version_pioneer.versionscript import __file__ as VERSIONSCRIPT_FILE
@@ -51,8 +51,8 @@ def get_version_script_core_code():
     return version_py_code
 
 
-def exec_version_script_and_convert(
-    project_dir_or_version_script_file: str | PathLike | None = None,
+def exec_versionscript_and_convert(
+    project_dir_or_versionscript_file: str | PathLike | None = None,
     *,
     output_format: RESOLUTION_FORMAT_TYPE = ResolutionFormat.version_string,
 ):
@@ -74,26 +74,26 @@ def exec_version_script_and_convert(
 
             print(json.dumps(get_version_dict()))
     """  # noqa: E501
-    from version_pioneer.utils.version_script import (
-        exec_version_script,
-        find_version_script_from_project_dir,
+    from version_pioneer.utils.versionscript import (
+        exec_versionscript,
+        find_versionscript_from_project_dir,
     )
 
-    if project_dir_or_version_script_file is None:
-        version_py_file = find_version_script_from_project_dir(
+    if project_dir_or_versionscript_file is None:
+        version_py_file = find_versionscript_from_project_dir(
             Path.cwd(), either_versionfile_or_versionscript=True
         )
     else:
-        project_dir_or_version_script_file = Path(project_dir_or_version_script_file)
-        if project_dir_or_version_script_file.is_file():
-            version_py_file = project_dir_or_version_script_file
+        project_dir_or_versionscript_file = Path(project_dir_or_versionscript_file)
+        if project_dir_or_versionscript_file.is_file():
+            version_py_file = project_dir_or_versionscript_file
         else:
-            version_py_file = find_version_script_from_project_dir(
-                project_dir_or_version_script_file,
+            version_py_file = find_versionscript_from_project_dir(
+                project_dir_or_versionscript_file,
                 either_versionfile_or_versionscript=True,
             )
 
-    version_dict = exec_version_script(version_py_file)
+    version_dict = exec_versionscript(version_py_file)
     return convert_version_dict(version_dict, output_format)
 
 

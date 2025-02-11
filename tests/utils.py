@@ -4,9 +4,9 @@ import logging
 import re
 from pathlib import Path
 
-from version_pioneer.utils.version_script import (
-    exec_version_script,
-    exec_version_script_code,
+from version_pioneer.utils.versionscript import (
+    exec_versionscript,
+    exec_versionscript_code,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def verify_resolved_versionfile(resolved_versionscript_code: str):
         )
 
     # Can you execute it without dependencies?
-    version_dict = exec_version_script_code(resolved_versionscript_code)
+    version_dict = exec_versionscript_code(resolved_versionscript_code)
 
     # Can you get the version?
     version = version_dict["version"]
@@ -51,4 +51,4 @@ def verify_resolved_versionfile(resolved_versionscript_code: str):
 
 def get_dynamic_version(project_dir: Path) -> str:
     version_module_code = project_dir / "src" / "my_app" / "_version.py"
-    return exec_version_script(version_module_code)["version"]
+    return exec_versionscript(version_module_code)["version"]

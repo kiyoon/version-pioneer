@@ -5,7 +5,7 @@ import pytest
 
 from version_pioneer.template import NO_VENDOR_VERSIONSCRIPT
 from version_pioneer.utils.build import build_project
-from version_pioneer.utils.version_script import exec_version_script
+from version_pioneer.utils.versionscript import exec_versionscript
 
 
 def test_no_vendor_hatchling_parentdir_prefix_from_url(
@@ -49,7 +49,7 @@ def test_no_vendor_hatchling_parentdir_prefix_from_url(
     (project_dir / "src" / "my_app").mkdir(parents=True, exist_ok=True)
     (project_dir / "src" / "my_app" / "_version.py").write_text(NO_VENDOR_VERSIONSCRIPT)
 
-    version_dict = exec_version_script(project_dir / "src" / "my_app" / "_version.py")
+    version_dict = exec_versionscript(project_dir / "src" / "my_app" / "_version.py")
     assert version_dict["version"] == "0.7.0"
 
     out, built_paths = build_project()
@@ -98,7 +98,7 @@ def test_no_vendor_hatchling_parentdir_prefix_from_project_name(
     (project_dir / "src" / "my_app").mkdir(parents=True, exist_ok=True)
     (project_dir / "src" / "my_app" / "_version.py").write_text(NO_VENDOR_VERSIONSCRIPT)
 
-    version_dict = exec_version_script(project_dir / "src" / "my_app" / "_version.py")
+    version_dict = exec_versionscript(project_dir / "src" / "my_app" / "_version.py")
     assert version_dict["version"] == "0.0.5"
 
     out, built_paths = build_project()

@@ -9,10 +9,10 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
 from version_pioneer.utils.toml import get_toml_value, load_toml
-from version_pioneer.utils.version_script import (
+from version_pioneer.utils.versionscript import (
     convert_version_dict,
-    exec_version_script,
-    find_version_script_from_project_dir,
+    exec_versionscript,
+    find_versionscript_from_project_dir,
 )
 
 
@@ -29,7 +29,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
         Args:
             version: editable, standard (note there's no separation from sdist and wheel)
         """
-        self.temp_version_file = None
+        self.temp_versionfile = None
 
         if version == "editable":
             return
@@ -37,7 +37,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
         pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
 
         # This also checks the valid config, so run it first.
-        versionscript = find_version_script_from_project_dir(
+        versionscript = find_versionscript_from_project_dir(
             project_dir=self.root,
             either_versionfile_or_versionscript=True,
         )
@@ -55,20 +55,20 @@ class VersionPioneerBuildHook(BuildHookInterface):
             return
         else:
             # NOTE: Setting delete=True will delete too early on Windows
-            self.temp_version_file = tempfile.NamedTemporaryFile(mode="w", delete=False)  # noqa: SIM115
-            version_dict = exec_version_script(versionscript)
-            self.temp_version_file.write(
+            self.temp_versionfile = tempfile.NamedTemporaryFile(mode="w", delete=False)  # noqa: SIM115
+            version_dict = exec_versionscript(versionscript)
+            self.temp_versionfile.write(
                 convert_version_dict(version_dict, output_format="python")
             )
-            self.temp_version_file.flush()
+            self.temp_versionfile.flush()
 
             # make it executable
-            versionfile_build_temp = Path(self.temp_version_file.name)
+            versionfile_build_temp = Path(self.temp_versionfile.name)
             versionfile_build_temp.chmod(
                 versionfile_build_temp.stat().st_mode | stat.S_IEXEC
             )
 
-            build_data["force_include"][self.temp_version_file.name] = versionfile_sdist
+            build_data["force_include"][self.temp_versionfile.name] = versionfile_sdist
 
     def finalize(
         self,
@@ -76,7 +76,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
         build_data: dict[str, Any],
         artifact_path: str,
     ) -> None:
-        if self.temp_version_file is not None:
+        if self.temp_versionfile is not None:
             # Delete the temporary version file
-            self.temp_version_file.close()
-            Path(self.temp_version_file.name).unlink()
+            self.temp_versionfile.close()
+            Path(self.temp_versionfile.name).unlink()

@@ -7,17 +7,17 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from version_pioneer.api import exec_version_script_and_convert
+from version_pioneer.api import exec_versionscript_and_convert
 from version_pioneer.utils.toml import (
     find_pyproject_toml,
     get_toml_value,
     load_toml,
 )
-from version_pioneer.utils.version_script import (
+from version_pioneer.utils.versionscript import (
     convert_version_dict,
-    exec_version_script,
-    find_version_script_from_project_dir,
-    find_version_script_from_pyproject_toml_dict,
+    exec_versionscript,
+    find_versionscript_from_project_dir,
+    find_versionscript_from_pyproject_toml_dict,
 )
 
 
@@ -60,8 +60,8 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             pass
 
         def run(self) -> None:
-            vers = exec_version_script(
-                find_version_script_from_project_dir(
+            vers = exec_versionscript(
+                find_versionscript_from_project_dir(
                     either_versionfile_or_versionscript=True
                 )
             )
@@ -114,10 +114,10 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 ["tool", "version-pioneer", "versionfile-wheel"],
             )
             if versionfile_wheel is not None:
-                versionscript = find_version_script_from_pyproject_toml_dict(
+                versionscript = find_versionscript_from_pyproject_toml_dict(
                     pyproject_toml, either_versionfile_or_versionscript=True
                 )
-                target_versionfile_content = exec_version_script_and_convert(
+                target_versionfile_content = exec_versionscript_and_convert(
                     versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
@@ -149,10 +149,10 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 ["tool", "version-pioneer", "versionfile-wheel"],
             )
             if versionfile_wheel is not None:
-                versionscript = find_version_script_from_pyproject_toml_dict(
+                versionscript = find_versionscript_from_pyproject_toml_dict(
                     pyproject_toml, either_versionfile_or_versionscript=True
                 )
-                target_versionfile_content = exec_version_script_and_convert(
+                target_versionfile_content = exec_versionscript_and_convert(
                     versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
@@ -195,7 +195,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             # HACK: replace _version.py directly in the source tree during build, and restore it.
             target_versionfile = versionscript
             print(f"UPDATING {target_versionfile}")
-            target_versionfile_content = exec_version_script_and_convert(
+            target_versionfile_content = exec_versionscript_and_convert(
                 versionscript, output_format="python"
             )
             original_versionscript_content = versionscript.read_text()
@@ -207,7 +207,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
         else:
             # HACK: write _version.py directly in the source tree during build.
             target_versionfile = versionfile_sdist
-            target_versionfile_content = exec_version_script_and_convert(
+            target_versionfile_content = exec_versionscript_and_convert(
                 versionscript, output_format="python"
             )
             target_versionfile.write_text(target_versionfile_content)
@@ -265,7 +265,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
 
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript = find_version_script_from_pyproject_toml_dict(
+            versionscript = find_versionscript_from_pyproject_toml_dict(
                 pyproject_toml, either_versionfile_or_versionscript=True
             )
 
@@ -302,10 +302,10 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
         def run(self) -> None:
             pyproject_toml_file = find_pyproject_toml()
             pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript = find_version_script_from_pyproject_toml_dict(
+            versionscript = find_versionscript_from_pyproject_toml_dict(
                 pyproject_toml, either_versionfile_or_versionscript=True
             )
-            self.version_dict = exec_version_script(
+            self.version_dict = exec_versionscript(
                 pyproject_toml_file.parent / versionscript
             )
 

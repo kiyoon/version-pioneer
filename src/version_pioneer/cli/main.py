@@ -28,7 +28,7 @@ from typing import List, Optional
 
 from version_pioneer.template import INIT_PY, NO_VENDOR_VERSIONSCRIPT, SETUP_PY
 from version_pioneer.utils.diff import unidiff_output
-from version_pioneer.utils.version_script import ResolutionFormat
+from version_pioneer.utils.versionscript import ResolutionFormat
 from version_pioneer.versionscript import VersionStyle
 
 if sys.version_info < (3, 9):
@@ -76,7 +76,7 @@ def install(
         project_dir: The root or child directory of the project. Default is cwd.
         vendor: Install the full versionscript. --no-vendor to import from version_pioneer.
     """
-    from version_pioneer.api import get_version_script_core_code
+    from version_pioneer.api import get_versionscript_core_code
     from version_pioneer.utils.toml import (
         find_pyproject_toml,
         get_toml_value,
@@ -111,7 +111,7 @@ def install(
     pyproject_toml = load_toml(pyproject_toml_file)
 
     project_dir = pyproject_toml_file.parent
-    version_script_file = project_dir / Path(
+    versionscript_file = project_dir / Path(
         get_toml_value(
             pyproject_toml,
             ["tool", "version-pioneer", "versionscript"],
@@ -120,14 +120,12 @@ def install(
     )
 
     if vendor:
-        _write_file_with_diff_confirm(
-            version_script_file, get_version_script_core_code()
-        )
+        _write_file_with_diff_confirm(versionscript_file, get_versionscript_core_code())
     else:
-        _write_file_with_diff_confirm(version_script_file, NO_VENDOR_VERSIONSCRIPT)
+        _write_file_with_diff_confirm(versionscript_file, NO_VENDOR_VERSIONSCRIPT)
 
     # Modify __init__.py
-    init_py_file = version_script_file.parent / "__init__.py"
+    init_py_file = versionscript_file.parent / "__init__.py"
     if not init_py_file.exists():
         init_py_file.write_text(INIT_PY)
         rich.print(f"[green]{init_py_file} added with content:[/green]")
@@ -171,24 +169,24 @@ def install(
 @app.command()
 def print_versionscript_code():
     """Print the content of versionscript.py file (for manual installation)."""
-    from version_pioneer.api import get_version_script_core_code
+    from version_pioneer.api import get_versionscript_core_code
 
-    print(get_version_script_core_code())
+    print(get_versionscript_core_code())
 
 
 @app.command()
-def exec_version_script(
-    project_dir_or_version_script_file: Annotated[
+def exec_versionscript(
+    project_dir_or_versionscript_file: Annotated[
         Optional[Path], typer.Argument()
     ] = None,
     output_format: ResolutionFormat = ResolutionFormat.version_string,
 ):
     """Resolve the _version.py file for build, and print the content."""
-    from version_pioneer.api import exec_version_script_and_convert
+    from version_pioneer.api import exec_versionscript_and_convert
 
     print(
-        exec_version_script_and_convert(
-            project_dir_or_version_script_file, output_format=output_format
+        exec_versionscript_and_convert(
+            project_dir_or_versionscript_file, output_format=output_format
         )
     )
 

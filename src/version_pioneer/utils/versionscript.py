@@ -31,7 +31,7 @@ RESOLUTION_FORMAT_TYPE = TypeVar(
 )
 
 
-def find_version_script_from_pyproject_toml_dict(
+def find_versionscript_from_pyproject_toml_dict(
     pyproject_toml_dict: dict[str, Any],
     *,
     either_versionfile_or_versionscript: bool = True,
@@ -63,7 +63,7 @@ def find_version_script_from_pyproject_toml_dict(
     return versionscript
 
 
-def find_version_script_from_project_dir(
+def find_versionscript_from_project_dir(
     project_dir: str | PathLike | None = None,
     *,
     either_versionfile_or_versionscript: bool = True,
@@ -86,28 +86,28 @@ def find_version_script_from_project_dir(
     pyproject_toml_file = find_pyproject_toml(project_dir)
     pyproject_toml = load_toml(pyproject_toml_file)
 
-    return pyproject_toml_file.parent / find_version_script_from_pyproject_toml_dict(
+    return pyproject_toml_file.parent / find_versionscript_from_pyproject_toml_dict(
         pyproject_toml,
         either_versionfile_or_versionscript=either_versionfile_or_versionscript,
     )
 
 
-def exec_version_script_code(version_script_code: str) -> VersionDict:
+def exec_versionscript_code(versionscript_code: str) -> VersionDict:
     """
     Execute `get_version_dict()` in _version.py.
     """
     module_globals = {}
-    exec(version_script_code, module_globals)
+    exec(versionscript_code, module_globals)
     return module_globals["get_version_dict"]()
 
 
-def exec_version_script(
-    version_script_path: str | PathLike,
+def exec_versionscript(
+    versionscript_path: str | PathLike,
 ) -> VersionDict:
     """Execute _version.py to get __version_dict__."""
-    version_script_path = Path(version_script_path)
-    code = version_script_path.read_text()
-    return exec_version_script_code(code)
+    versionscript_path = Path(versionscript_path)
+    code = versionscript_path.read_text()
+    return exec_versionscript_code(code)
 
 
 def convert_version_dict(
