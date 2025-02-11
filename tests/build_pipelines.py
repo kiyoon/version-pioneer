@@ -16,10 +16,10 @@ from tests.utils import (
     get_dynamic_version,
     verify_resolved_versionfile,
 )
-from version_pioneer.api import get_version_script_core_code
+from version_pioneer.api import get_versionscript_core_code
 from version_pioneer.utils.build import build_project, unpack_wheel
-from version_pioneer.utils.version_script import (
-    exec_version_script_code,
+from version_pioneer.utils.versionscript import (
+    exec_versionscript_code,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     # actually evaluate the version
     logger.info(f"Resolved _version.py code: {resolved_versionfile}")
-    version_after_tag: str = exec_version_script_code(resolved_versionfile)["version"]
+    version_after_tag: str = exec_versionscript_code(resolved_versionfile)["version"]
     logger.info(f"Version after tag: {version_after_tag}")
 
     assert version_after_tag == "0.1.0"
@@ -107,7 +107,7 @@ def assert_build_and_version_persistence(project_dir: Path):
     verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code(resolved_versionfile)[
+    version_after_commit_resolved = exec_versionscript_code(resolved_versionfile)[
         "version"
     ]
     logger.info(f"Version after commit (resolved): {version_after_commit_resolved}")
@@ -156,7 +156,7 @@ def assert_build_and_version_persistence(project_dir: Path):
     verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
-    version_after_commit_resolved = exec_version_script_code(resolved_versionfile)[
+    version_after_commit_resolved = exec_versionscript_code(resolved_versionfile)[
         "version"
     ]
     logger.info(
@@ -184,7 +184,7 @@ def check_no_versionfile_output(*, cwd: Path, mode: str = "both", version="0.1.1
         unresolved_versionscript = (
             cwd / "dist" / f"my_app-{version}" / "src" / "my_app" / "_version.py"
         ).read_text()
-        assert unresolved_versionscript == get_version_script_core_code()
+        assert unresolved_versionscript == get_versionscript_core_code()
         verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     if mode in ("wheel", "both"):
         # logger.info(list((cwd / "dist").glob("*")))
@@ -197,6 +197,6 @@ def check_no_versionfile_output(*, cwd: Path, mode: str = "both", version="0.1.1
         unresolved_versionscript = (
             cwd / "dist" / f"my_app-{version}" / "my_app" / "_version.py"
         ).read_text()
-        assert unresolved_versionscript == get_version_script_core_code()
+        assert unresolved_versionscript == get_versionscript_core_code()
         verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     rmtree(cwd / "dist")

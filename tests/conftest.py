@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from version_pioneer.api import get_version_script_core_code
+from version_pioneer.api import get_versionscript_core_code
 from version_pioneer.template import SETUP_PY
 from version_pioneer.utils.build import build_project
 
@@ -111,8 +111,8 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root = package_dir / "__init__.py"
     package_root.write_text("")
 
-    version_file = package_dir / "_version.py"
-    version_file.write_text(get_version_script_core_code())
+    versionscript = package_dir / "_version.py"
+    versionscript.write_text(get_versionscript_core_code())
 
     monkeypatch.chdir(project_dir)
 
@@ -173,8 +173,8 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root = package_dir / "__init__.py"
     package_root.write_text("")
 
-    version_file = package_dir / "_version.py"
-    version_file.write_text(get_version_script_core_code())
+    versionscript = package_dir / "_version.py"
+    versionscript.write_text(get_versionscript_core_code())
 
     monkeypatch.chdir(project_dir)
 
@@ -231,8 +231,8 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     package_root = package_dir / "__init__.py"
     package_root.write_text("")
 
-    version_file = package_dir / "_version.py"
-    version_file.write_text(get_version_script_core_code())
+    versionscript = package_dir / "_version.py"
+    versionscript.write_text(get_versionscript_core_code())
 
     monkeypatch.chdir(project_dir)
 
