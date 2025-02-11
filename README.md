@@ -21,11 +21,11 @@
 - 🦀 Works with any language, not just Python.
     - Version format `"digits"` generates digits-only version string which is useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
     - CLI makes it easy to compute the version without vendoring anything in the project.
-- 🩹 Can resolve version even when the git info is missing.
+- 🧙‍♂️ Auto-magically infer version even when the git info is missing.
     - Downloaded from GitHub Releases? Read from the directory name.
         - The `parentdir_prefix` is automatically resolved from `pyproject.toml`'s source URL etc.
     - sdist built without writing a resolved versionfile?
-        - Read from PKG-INFO. 
+        - Read from PKG-INFO.
 - 🔢 New version formats:
     - `"pep440-master"`: shows the distance from the tag to master/main, and the master to the current branch. (e.g. 1.2.3&#8203;**+4.gxxxxxxx**&#8203;_.5.gxxxxxxx_ )
     - `"digits"`: the distance and dirty information compiled to the last digit. (e.g. 1.2.3&#8203;**.4**)
@@ -205,7 +205,7 @@ class VersionPioneerConfig:
     - See Versioneer for more styles (or read documentation in _version.py).
 - `tag_prefix`: tag to look for in git for the reference version.
 - `parentdir_prefix`: if there is no .git, like it's a source tarball downloaded from GitHub Releases, find version from the name of the parent directory. e.g. setting it to "github-repo-name-" will find the version from "github-repo-name-1.2.3"
-    - 🔍 Set to None to automatically inferred from pyproject.toml's GitHub/GitLab URL or project name. (New in Version-Pioneer)
+    - 🧙‍♂️ Set to None to auto-magically infer from pyproject.toml's GitHub/GitLab URL or project name. (New in Version-Pioneer)
 - `verbose`: print debug messages.
 
 If you want to customise the logic, you can modify the entire script. However you modify the script, remember that this file has to be able to run like a standalone script without any other dependencies (like package, files, config, etc.).
