@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.0.14] - 2025-12-26
+### :bug: Bug Fixes
+- [`a0d8779`](https://github.com/kiyoon/version-pioneer/commit/a0d8779ff7177e7ab92adb454319c7aff060a34d) - versionscript encoding issue *(PR [#2](https://github.com/kiyoon/version-pioneer/pull/2) by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v0.0.13] - 2025-02-11
 ### :boom: BREAKING CHANGES
 - due to [`aab2826`](https://github.com/kiyoon/version-pioneer/commit/aab2826e6c45f8ee2d9c92e063b7c79541873bb2) - version_script -> versionscript, version_file -> versionfile for consistency *(PR [#1](https://github.com/kiyoon/version-pioneer/pull/1) by [@kiyoon](https://github.com/kiyoon))*:
@@ -119,3 +124,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.0.11]: https://github.com/kiyoon/version-pioneer/compare/v0.0.10...v0.0.11
 [v0.0.12]: https://github.com/kiyoon/version-pioneer/compare/v0.0.11...v0.0.12
 [v0.0.13]: https://github.com/kiyoon/version-pioneer/compare/v0.0.12...v0.0.13
+[v0.0.14]: https://github.com/kiyoon/version-pioneer/compare/v0.0.13...v0.0.14
