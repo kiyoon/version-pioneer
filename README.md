@@ -236,7 +236,7 @@ Just `exec` the original `versionscript.py` and save the result as you wish: tex
 
 ```python
 # code to evaluate get_version_dict() from the version script
-Path("src/my_project/_version.py").read_text()
+version_py = Path("src/my_project/_version.py").read_text(encoding="utf-8")
 module_globals = {}
 exec(version_py, module_globals)
 print(module_globals["get_version_dict"]())
@@ -330,7 +330,7 @@ class CustomPioneerBuildHook(BuildHookInterface):
         versionscript = Path(
             pyproject_toml["tool"]["version-pioneer"]["versionscript"]
         )
-        version_py = versionscript.read_text()
+        version_py = versionscript.read_text(encoding="utf-8")
         module_globals = {}
         exec(version_py, module_globals)
         version_dict = module_globals["get_version_dict"]()
@@ -412,7 +412,7 @@ def pdm_build_initialize(context: Context):
     versionscript = Path(
         context.config.data["tool"]["version-pioneer"]["versionscript"]
     )
-    versionscript_code = versionscript.read_text()
+    versionscript_code = versionscript.read_text(encoding="utf-8")
     version_module_globals = {}
     exec(versionscript_code, version_module_globals)
     version_dict = version_module_globals["get_version_dict"]()
@@ -435,7 +435,8 @@ def pdm_build_initialize(context: Context):
 
                 def get_version_dict():
                     return {version_dict}
-            """).strip()
+            """).strip(),
+            encoding="utf-8",
         )
 ```
 

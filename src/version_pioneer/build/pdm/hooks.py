@@ -51,7 +51,8 @@ class VersionPioneerBuildHook:
                 context.ensure_build_dir()
                 versionfile.parent.mkdir(parents=True, exist_ok=True)
                 versionfile.write_text(
-                    convert_version_dict(version_dict, output_format="python")
+                    convert_version_dict(version_dict, output_format="python"),
+                    encoding="utf-8",
                 )
                 # make it executable
                 versionfile.chmod(versionfile.stat().st_mode | stat.S_IEXEC)

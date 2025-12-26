@@ -122,7 +122,9 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
                 print(f"UPDATING {target_versionfile}")
-                target_versionfile.write_text(target_versionfile_content)
+                target_versionfile.write_text(
+                    target_versionfile_content, encoding="utf-8"
+                )
 
     cmds["build_py"] = CmdBuildPy
 
@@ -164,7 +166,9 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                     )
                     return
                 print(f"UPDATING {target_versionfile}")
-                target_versionfile.write_text(target_versionfile_content)
+                target_versionfile.write_text(
+                    target_versionfile_content, encoding="utf-8"
+                )
 
     cmds["build_ext"] = CmdBuildExt
 
@@ -198,19 +202,20 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             target_versionfile_content = exec_versionscript_and_convert(
                 versionscript, output_format="python"
             )
-            original_versionscript_content = versionscript.read_text()
-            target_versionfile.write_text(target_versionfile_content)
+
+            original_versionscript_bytes = versionscript.read_bytes()
+            target_versionfile.write_text(target_versionfile_content, encoding="utf-8")
 
             run_func()
 
-            target_versionfile.write_text(original_versionscript_content)
+            target_versionfile.write_bytes(original_versionscript_bytes)
         else:
             # HACK: write _version.py directly in the source tree during build.
             target_versionfile = versionfile_sdist
             target_versionfile_content = exec_versionscript_and_convert(
                 versionscript, output_format="python"
             )
-            target_versionfile.write_text(target_versionfile_content)
+            target_versionfile.write_text(target_versionfile_content, encoding="utf-8")
 
             run_func()
             # We do not remove the versionfile-sdist. Put it as .gitignore.
@@ -288,7 +293,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             ]
 
             manifest_filename = Path(self.egg_info) / "SOURCES.txt"
-            manifest_filename.write_text("\n".join(normalized))
+            manifest_filename.write_text("\n".join(normalized), encoding="utf-8")
 
     cmds["egg_info"] = CmdEggInfo
 
@@ -332,7 +337,8 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 target_versionfile = Path(base_dir) / self.versionfile_sdist
                 print(f"UPDATING {target_versionfile}")
                 target_versionfile.write_text(
-                    convert_version_dict(self.version_dict, output_format="python")
+                    convert_version_dict(self.version_dict, output_format="python"),
+                    encoding="utf-8",
                 )
 
     cmds["sdist"] = CmdSdist

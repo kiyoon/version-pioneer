@@ -65,6 +65,7 @@ def test_different_versionfile(new_setuptools_project: Path, plugin_wheel: Path)
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     subprocess.run(["git", "add", "."], check=True)
@@ -96,6 +97,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
             name = "my-app"
             dynamic = ["version"]
         """),
+        encoding="utf-8",
     )
 
     err, _ = build_project(check=False)
@@ -121,6 +123,7 @@ def test_invalid_config(new_setuptools_project: Path, plugin_wheel: Path):
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     err, _ = build_project(check=False)
@@ -163,6 +166,7 @@ def test_no_versionfile_sdist_nor_wheel(
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     # Can't use dynamic versioning without versionfile-wheel.
@@ -177,6 +181,7 @@ def test_no_versionfile_sdist_nor_wheel(
                 cmdclass=get_cmdclass(),
             )
         """),
+        encoding="utf-8",
     )
 
     subprocess.run(["git", "add", "."], check=True)

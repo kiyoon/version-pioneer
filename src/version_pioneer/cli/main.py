@@ -2,7 +2,7 @@
 # Allow many arguments
 # Allow relative import from parent
 # Allow using Optional
-# ruff: noqa: T201 PLR0913 TID252 FA100
+# ruff: noqa: T201 TID252 FA100
 
 # NOTE: type | None only works in Python 3.10+ with typer, so we use Optional instead.
 
@@ -85,7 +85,7 @@ def install(
 
     def _write_file_with_diff_confirm(file: Path, content: str):
         if file.exists():
-            existing_content = file.read_text()
+            existing_content = file.read_text(encoding="utf-8")
             if existing_content.strip() == content.strip():
                 rich.print(f"[green]File already exists:[/green] {file} (no changes)")
                 sys.exit(2)
@@ -104,7 +104,7 @@ def install(
                 rich.print("[red]Aborted.[/red]")
                 sys.exit(1)
 
-        file.write_text(content)
+        file.write_text(content, encoding="utf-8")
         rich.print(f"[green]File written:[/green] {file}")
 
     pyproject_toml_file = find_pyproject_toml(project_dir)
@@ -127,17 +127,19 @@ def install(
     # Modify __init__.py
     init_py_file = versionscript_file.parent / "__init__.py"
     if not init_py_file.exists():
-        init_py_file.write_text(INIT_PY)
+        init_py_file.write_text(INIT_PY, encoding="utf-8")
         rich.print(f"[green]{init_py_file} added with content:[/green]")
         print(INIT_PY)
     else:
-        init_py_content = init_py_file.read_text()
+        init_py_content = init_py_file.read_text(encoding="utf-8")
         init_py_template_lines = [line for line in INIT_PY.splitlines() if line.strip()]
         # if all lines exists in the init_py_content
         if all(line in init_py_content for line in init_py_template_lines):
             print("__init__.py already configured. Not modifying.")
         else:
-            init_py_file.write_text(INIT_PY + "\n\n" + init_py_content)
+            init_py_file.write_text(
+                INIT_PY + "\n\n" + init_py_content, encoding="utf-8"
+            )
             rich.print(f"[green]{init_py_file} modified with[/green]")
             print(INIT_PY)
             rich.print("[green]at the top![/green]")

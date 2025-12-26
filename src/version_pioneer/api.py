@@ -36,7 +36,7 @@ def get_versionscript_core_code():
     from version_pioneer import __version__
     from version_pioneer.versionscript import __file__ as VERSIONSCRIPT_FILE
 
-    version_py_code = Path(VERSIONSCRIPT_FILE).read_text()
+    version_py_code = Path(VERSIONSCRIPT_FILE).read_text(encoding="utf-8")
 
     # Put header after the shebang line
     version_py_code = version_py_code.replace(

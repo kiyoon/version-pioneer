@@ -56,6 +56,7 @@ def test_different_versionfile(new_pdm_project: Path, plugin_wheel: Path):
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     subprocess.run(["git", "add", "."], check=True)
@@ -90,6 +91,7 @@ def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     err, _ = build_project(check=False)
@@ -115,6 +117,7 @@ def test_invalid_config(new_pdm_project: Path, plugin_wheel: Path):
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     err, _ = build_project(check=False)
@@ -152,6 +155,7 @@ def test_no_versionfile_sdist(new_pdm_project: Path, plugin_wheel: Path):
             dynamic = ["version"]
             requires-python = ">=3.8"
         """),
+        encoding="utf-8",
     )
 
     subprocess.run(["git", "add", "."], check=True)

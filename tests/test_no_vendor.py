@@ -43,11 +43,14 @@ def test_no_vendor_hatchling_parentdir_prefix_from_url(
 
             [project.urls]
             source = "https://github.com/username/no_vendor_hatchling_project.git"  # <- HERE
-        """)
+        """),
+        encoding="utf-8",
     )
 
     (project_dir / "src" / "my_app").mkdir(parents=True, exist_ok=True)
-    (project_dir / "src" / "my_app" / "_version.py").write_text(NO_VENDOR_VERSIONSCRIPT)
+    (project_dir / "src" / "my_app" / "_version.py").write_text(
+        NO_VENDOR_VERSIONSCRIPT, encoding="utf-8"
+    )
 
     version_dict = exec_versionscript(project_dir / "src" / "my_app" / "_version.py")
     assert version_dict["version"] == "0.7.0"
@@ -92,11 +95,14 @@ def test_no_vendor_hatchling_parentdir_prefix_from_project_name(
             requires-python = ">=3.8"
 
             # [project.urls] does not exist
-        """)
+        """),
+        encoding="utf-8",
     )
 
     (project_dir / "src" / "my_app").mkdir(parents=True, exist_ok=True)
-    (project_dir / "src" / "my_app" / "_version.py").write_text(NO_VENDOR_VERSIONSCRIPT)
+    (project_dir / "src" / "my_app" / "_version.py").write_text(
+        NO_VENDOR_VERSIONSCRIPT, encoding="utf-8"
+    )
 
     version_dict = exec_versionscript(project_dir / "src" / "my_app" / "_version.py")
     assert version_dict["version"] == "0.0.5"
