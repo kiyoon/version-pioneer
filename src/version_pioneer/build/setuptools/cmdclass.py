@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 import sys
-import tokenize
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
