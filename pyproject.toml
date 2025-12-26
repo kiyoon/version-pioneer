@@ -190,6 +190,7 @@ ignore = [
   "TRY400",  # logger.exception instead of logger.error
   "PLR2004", # magic value comparison
   "PLW2901", # loop variable overwritten by assignment target
+  "PLC0415", # import should be at the top-level
 ]
 
 [tool.ruff.lint.per-file-ignores]

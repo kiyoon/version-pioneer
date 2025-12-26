@@ -236,7 +236,7 @@ Just `exec` the original `versionscript.py` and save the result as you wish: tex
 
 ```python
 # code to evaluate get_version_dict() from the version script
-Path("src/my_project/_version.py").read_text(encoding="utf-8")
+version_py = Path("src/my_project/_version.py").read_text(encoding="utf-8")
 module_globals = {}
 exec(version_py, module_globals)
 print(module_globals["get_version_dict"]())

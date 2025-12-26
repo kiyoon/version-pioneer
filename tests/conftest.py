@@ -52,7 +52,7 @@ def _plugin_wheel():
     For example, it ensures _version.py and _version_orig.py are included in the wheel with different content.
     """
     with TemporaryDirectory() as d:
-        out, builds = build_project("--out-dir", d)
+        _out, builds = build_project("--out-dir", d)
         assert len(builds) == 2
         wheel_path = builds[1]
         if not wheel_path.is_absolute():

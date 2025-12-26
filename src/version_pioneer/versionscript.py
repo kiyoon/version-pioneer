@@ -246,7 +246,7 @@ class GitMasterDistance:
         )
 
         # Get the current branch name
-        current_branch, rc = git_runner(
+        current_branch, _rc = git_runner(
             ["branch", "--show-current"],
             cwd=cwd,
         )
@@ -259,13 +259,13 @@ class GitMasterDistance:
 
         if tag_of_interest is None:
             # Get entire history (commits) from the current branch
-            out, rc = git_runner(
+            out, _rc = git_runner(
                 ["log", "--pretty=format:%H"],
                 cwd=cwd,
             )
         else:
             # Get history from the tag to the current branch
-            out, rc = git_runner(
+            out, _rc = git_runner(
                 ["log", f"{tag_of_interest}..", "--pretty=format:%H"],
                 cwd=cwd,
             )
@@ -278,7 +278,7 @@ class GitMasterDistance:
         distance_from_master = 0
         master_commit = None
         for commit in all_commits:
-            out, rc = git_runner(
+            out, _rc = git_runner(
                 ["branch", "--contains", commit],
                 cwd=cwd,
             )
@@ -306,7 +306,7 @@ class GitMasterDistance:
                     "Maybe detached head or you don't use master?"
                 )
 
-            out, re = git_runner(["rev-list", "-1", tag_of_interest], cwd=cwd)
+            out, _re = git_runner(["rev-list", "-1", tag_of_interest], cwd=cwd)
             master_commit = out.strip()
             if len(master_commit) != 40:
                 raise NotThisMethodError("Something is strange in you git commit hash")
