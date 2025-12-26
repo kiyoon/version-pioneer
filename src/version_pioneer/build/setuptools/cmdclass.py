@@ -203,18 +203,13 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             target_versionfile_content = exec_versionscript_and_convert(
                 versionscript, output_format="python"
             )
-            # Reads using Python-source with correct encoding (PEP 263)
-            # instead of assuming it's UTF-8. It replaces the following:
-            # original_versionscript_content = versionscript.read_text(encoding="utf-8")
-            with tokenize.open(versionscript) as f:
-                original_versionscript_content = f.read()
+
+            original_versionscript_bytes = versionscript.read_bytes()
             target_versionfile.write_text(target_versionfile_content, encoding="utf-8")
 
             run_func()
 
-            target_versionfile.write_text(
-                original_versionscript_content, encoding="utf-8"
-            )
+            target_versionfile.write_bytes(original_versionscript_bytes)
         else:
             # HACK: write _version.py directly in the source tree during build.
             target_versionfile = versionfile_sdist
