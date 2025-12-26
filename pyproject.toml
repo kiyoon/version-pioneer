@@ -1,5 +1,9 @@
 [build-system]
-requires = ["hatchling", "hatch-requirements-txt", "tomli ; python_version < '3.11'"]
+requires = [
+  "hatchling",
+  "hatch-requirements-txt",
+  "tomli ; python_version < '3.11'",
+]
 build-backend = "hatchling.build"
 
 [tool.hatch.metadata.hooks.requirements_txt]
@@ -24,9 +28,7 @@ versionfile-wheel = "version_pioneer/_version.py"
 name = "version-pioneer"
 dynamic = ["version", "dependencies", "optional-dependencies"]
 description = "VCS-based project version management for any build backend (setuptools, hatchling, pdm) extensible to any programming language."
-authors = [
-  { name = "Kiyoon Kim" },
-]
+authors = [{ name = "Kiyoon Kim" }]
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8,<4"
@@ -41,9 +43,24 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "License :: OSI Approved :: MIT License",
 ]
-keywords = ["version", "vcs", "git", "project", "project-management", "versioning", "version-control", "version-string", "version-number", "versioning-scheme", "version-scheme", "versioning-strategy", "version-strategy"]
+keywords = [
+  "version",
+  "vcs",
+  "git",
+  "project",
+  "project-management",
+  "versioning",
+  "version-control",
+  "version-string",
+  "version-number",
+  "versioning-scheme",
+  "version-scheme",
+  "versioning-strategy",
+  "version-strategy",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/kiyoon/version-pioneer"
@@ -62,7 +79,12 @@ version-pioneer = "version_pioneer.build.pdm.hooks:VersionPioneerBuildHook"
 # https://github.com/deargen/workflows/blob/master/python-projector
 requirements-in-dir = "deps"
 requirements-out-dir = "deps/lock"
-python-platforms = ["x86_64-manylinux_2_17", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+python-platforms = [
+  "x86_64-manylinux_2_17",
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-pc-windows-msvc",
+]
 
 [tool.pytest.ini_options]
 addopts = "--cov=version_pioneer"
@@ -74,8 +96,8 @@ log_cli_level = "INFO"
 [tool.coverage.report]
 omit = [
   "*/version_pioneer/_version.py",
-  "*/version_pioneer/build/*",  # build is tested separately, and it doesn't count towards coverage
-  "*/version_pioneer/cli/*",    # cli is hard to test, so we focus more on api testing which CLI depends on
+  "*/version_pioneer/build/*",     # build is tested separately, and it doesn't count towards coverage
+  "*/version_pioneer/cli/*",       # cli is hard to test, so we focus more on api testing which CLI depends on
 ]
 
 [tool.pyright]
@@ -102,49 +124,49 @@ select = [
   "E",
   "F",
   "W",
-  "B",    # Bugbear
-  "D",    # Docstring
-  "D213", # Multi-line docstring summary should start at the second line (replace D212)
-  "N",    # Naming
-  "C4",   # flake8-comprehensions
-  "UP",   # pyupgrade
-  "SIM",  # simplify
-  "RUF",  # ruff-specific
-  "RET501",  # return
-  "RET502",  # return
-  "RET503",  # return
-  "PTH",  # path
-  "NPY",  # numpy
-  "PD",   # pandas
-  "PYI",  # type stubs for pyright/pylance
-  "PT",   # pytest
-  "PIE",  #
-  "LOG",  # logging
-  "COM818",  # comma misplaced
-  "COM819",  # comma
-  "DTZ",  # datetime
+  "B",      # Bugbear
+  "D",      # Docstring
+  "D213",   # Multi-line docstring summary should start at the second line (replace D212)
+  "N",      # Naming
+  "C4",     # flake8-comprehensions
+  "UP",     # pyupgrade
+  "SIM",    # simplify
+  "RUF",    # ruff-specific
+  "RET501", # return
+  "RET502", # return
+  "RET503", # return
+  "PTH",    # path
+  "NPY",    # numpy
+  "PD",     # pandas
+  "PYI",    # type stubs for pyright/pylance
+  "PT",     # pytest
+  "PIE",    #
+  "LOG",    # logging
+  "COM818", # comma misplaced
+  "COM819", # comma
+  "DTZ",    # datetime
   "YTT",
   "ASYNC",
-  "FBT",  # boolean trap
-  "A",    # Shadowing python builtins
-  "EXE",  # executable (shebang)
-  "FA",   # future annotations
-  "ISC",  # Implicit string concatenation
-  "ICN",  # Import convention 
-  "INP",  # Implicit namespace package (no __init__.py)
-  "Q",    # Quotes
-  "RSE",  # raise
-  "SLOT", # __slots__
-  "PL",   # Pylint
-  "TRY",  # try
-  "FAST", # FastAPI
-  "AIR",  # airflow
-  "DOC",  # docstring
-  "TID",  # tidy-imports
+  "FBT",    # boolean trap
+  "A",      # Shadowing python builtins
+  "EXE",    # executable (shebang)
+  "FA",     # future annotations
+  "ISC",    # Implicit string concatenation
+  "ICN",    # Import convention 
+  "INP",    # Implicit namespace package (no __init__.py)
+  "Q",      # Quotes
+  "RSE",    # raise
+  "SLOT",   # __slots__
+  "PL",     # Pylint
+  "TRY",    # try
+  "FAST",   # FastAPI
+  "AIR",    # airflow
+  "DOC",    # docstring
+  "TID",    # tidy-imports
 
   # Not important
-  "T10",  # debug statements
-  "T20",  # print statements
+  "T10", # debug statements
+  "T20", # print statements
 ]
 
 ignore = [
@@ -167,12 +189,12 @@ ignore = [
   "TRY003",  # long message in except
   "TRY400",  # logger.exception instead of logger.error
   "PLR2004", # magic value comparison
-  "PLW2901"  # loop variable overwritten by assignment target
+  "PLW2901", # loop variable overwritten by assignment target
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
-    "F401", # Ignore seemingly unused imports (they're meant for re-export)
+  "F401", # Ignore seemingly unused imports (they're meant for re-export)
 ]
 # Directories that do not contain s, r, and c
 "[!s][!r][!c]*/**" = ["INP001"] # Implicit namespace package (no __init__.py)
@@ -213,4 +235,3 @@ max-public-methods = 30
 max-nested-blocks = 10
 max-locals = 30
 max-branches = 24
-

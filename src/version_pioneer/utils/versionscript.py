@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
+import tokenize
 from enum import Enum
 from os import PathLike
 from pathlib import Path
+from types import CodeType
 from typing import Any, Literal, TypeVar
 
 from version_pioneer import template
@@ -92,7 +94,7 @@ def find_versionscript_from_project_dir(
     )
 
 
-def exec_versionscript_code(versionscript_code: str) -> VersionDict:
+def exec_versionscript_code(versionscript_code: str | CodeType) -> VersionDict:
     """
     Execute `get_version_dict()` in _version.py.
     """
@@ -106,7 +108,14 @@ def exec_versionscript(
 ) -> VersionDict:
     """Execute _version.py to get __version_dict__."""
     versionscript_path = Path(versionscript_path)
-    code = versionscript_path.read_text()
+
+    # Reads using Python-source with correct encoding (PEP 263)
+    # instead of assuming it's UTF-8. It replaces the following:
+    # code = versionscript_path.read_text(encoding="utf-8")
+    with tokenize.open(versionscript_path) as f:
+        source = f.read()
+    code = compile(source, str(versionscript_path), "exec", dont_inherit=True)
+
     return exec_versionscript_code(code)
 
 

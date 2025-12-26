@@ -45,7 +45,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     resolved_versionfile = (
         project_dir / "my_app-0.1.0" / "my_app" / "_version.py"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
@@ -103,7 +103,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     resolved_versionfile = (
         project_dir / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
@@ -152,7 +152,7 @@ def assert_build_and_version_persistence(project_dir: Path):
 
     resolved_versionfile = (
         project_dir / f"my_app-{dynamic_version}" / "my_app" / "_version.py"
-    ).read_text()
+    ).read_text(encoding="utf-8")
     verify_resolved_versionfile(resolved_versionfile)
 
     # actually evaluate the version
@@ -183,7 +183,7 @@ def check_no_versionfile_output(*, cwd: Path, mode: str = "both", version="0.1.1
         subprocess.run(["tar", "xzf", sdist], cwd=cwd / "dist", check=True)
         unresolved_versionscript = (
             cwd / "dist" / f"my_app-{version}" / "src" / "my_app" / "_version.py"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         assert unresolved_versionscript == get_versionscript_core_code()
         verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     if mode in ("wheel", "both"):
@@ -196,7 +196,7 @@ def check_no_versionfile_output(*, cwd: Path, mode: str = "both", version="0.1.1
 
         unresolved_versionscript = (
             cwd / "dist" / f"my_app-{version}" / "my_app" / "_version.py"
-        ).read_text()
+        ).read_text(encoding="utf-8")
         assert unresolved_versionscript == get_versionscript_core_code()
         verify_resolved_versionfile(unresolved_versionscript)  # expected to fail
     rmtree(cwd / "dist")

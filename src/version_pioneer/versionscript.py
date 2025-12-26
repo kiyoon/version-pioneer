@@ -1073,7 +1073,7 @@ def get_version_from_pkg_info(cwd: "str | PathLike") -> VersionDict:
             )
 
         # Confirm [tool.version-pioneer] section exists in pyproject.toml
-        with open(pyproject_toml) as f:
+        with open(pyproject_toml, encoding="utf-8") as f:
             lines = f.readlines()
         for line in lines:
             if "[tool.version-pioneer]" in line:
@@ -1084,7 +1084,7 @@ def get_version_from_pkg_info(cwd: "str | PathLike") -> VersionDict:
             )
 
         # Read PKG-INFO file
-        with open(project_root / "PKG-INFO") as f:
+        with open(project_root / "PKG-INFO", encoding="utf-8") as f:
             pkg_info = Parser().parse(f)
         pkg_version = pkg_info.get("Version")
         if not pkg_version:

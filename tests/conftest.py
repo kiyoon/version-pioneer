@@ -105,14 +105,15 @@ def _new_hatchling_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
         textwrap.dedent("""
             /dist/
             /dist-*/
-        """)
+        """),
+        encoding="utf-8",
     )
 
     package_root = package_dir / "__init__.py"
-    package_root.write_text("")
+    package_root.write_text("", encoding="utf-8")
 
     versionscript = package_dir / "_version.py"
-    versionscript.write_text(get_versionscript_core_code())
+    versionscript.write_text(get_versionscript_core_code(), encoding="utf-8")
 
     monkeypatch.chdir(project_dir)
 
@@ -155,7 +156,7 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
     )
 
     setup_file = project_dir / "setup.py"
-    setup_file.write_text(SETUP_PY)
+    setup_file.write_text(SETUP_PY, encoding="utf-8")
 
     # NOTE: without gitignore, build will create artifacts which makes the version always dirty
     gitignore_file = project_dir / ".gitignore"
@@ -164,17 +165,18 @@ def _new_setuptools_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
             *.egg-info/
             /dist/
             /dist-*/
-        """)
+        """),
+        encoding="utf-8",
     )
 
     package_dir = project_dir / "src" / "my_app"
     package_dir.mkdir(parents=True)
 
     package_root = package_dir / "__init__.py"
-    package_root.write_text("")
+    package_root.write_text("", encoding="utf-8")
 
     versionscript = package_dir / "_version.py"
-    versionscript.write_text(get_versionscript_core_code())
+    versionscript.write_text(get_versionscript_core_code(), encoding="utf-8")
 
     monkeypatch.chdir(project_dir)
 
@@ -222,17 +224,18 @@ def _new_pdm_project(plugin_wheel: Path, tmp_path: Path, monkeypatch):
         textwrap.dedent("""
             /dist/
             /dist-*/
-        """)
+        """),
+        encoding="utf-8",
     )
 
     package_dir = project_dir / "src" / "my_app"
     package_dir.mkdir(parents=True)
 
     package_root = package_dir / "__init__.py"
-    package_root.write_text("")
+    package_root.write_text("", encoding="utf-8")
 
     versionscript = package_dir / "_version.py"
-    versionscript.write_text(get_versionscript_core_code())
+    versionscript.write_text(get_versionscript_core_code(), encoding="utf-8")
 
     monkeypatch.chdir(project_dir)
 
