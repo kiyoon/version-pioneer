@@ -37,7 +37,7 @@ def assert_build_and_version_persistence(project_dir: Path):
     whl = project_dir / "dist" / "my_app-0.1.0-py3-none-any.whl"
 
     assert whl.exists(), (
-        f"Build did not produce a correctly named wheel. Found: {(project_dir / 'dist').iterdir()}"
+        f"Build did not produce a correctly named wheel. Found: {list((project_dir / 'dist').iterdir())}"
     )
 
     unpack_wheel(whl)
@@ -95,7 +95,7 @@ def assert_build_and_version_persistence(project_dir: Path):
     # )
     # logger.info(ps.stdout)
     assert whl.exists(), (
-        f"Build did not produce a correctly named wheel. Found: {(project_dir / 'dist').iterdir()}"
+        f"Build did not produce a correctly named wheel. Found: {list((project_dir / 'dist').iterdir())}"
     )
 
     unpack_wheel(whl)
@@ -144,7 +144,7 @@ def assert_build_and_version_persistence(project_dir: Path):
     # logger.info(f"Found wheels: {whls}")
     whl = project_dir / "dist" / f"my_app-{dynamic_version}-py3-none-any.whl"
     assert whl.exists(), (
-        f"Build did not produce a correctly named wheel. Found: {(project_dir / 'dist').iterdir()}"
+        f"Build did not produce a correctly named wheel. Found: {list((project_dir / 'dist').iterdir())}"
     )
 
     unpack_wheel(whl)
