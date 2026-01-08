@@ -564,7 +564,7 @@ $ version-pioneer build-consistency-test
 ## 📚 Note
 
 - Only supports git.
-- `git archive` is not supported. Original Versioneer uses `.gitattributes` to tell git to replace some strings in `_version.py` when archiving. But this is not enough information (at least in my case) and the version string always becomes `0+unknown`. So I dropped it.
+- `git archive` is not built-in, but it's easy to add it back in your versionscript. Original Versioneer uses `.gitattributes` to tell git to replace some strings in `_version.py` when archiving. How to add the support and why I dropped it is in [this issue comment](https://github.com/kiyoon/version-pioneer/issues/5#issuecomment-3721450258).
 
 
 ### Build chaining problem
