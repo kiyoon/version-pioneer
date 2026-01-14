@@ -61,7 +61,9 @@ def find_config_file(project_dir: str | PathLike | None = None) -> Path:
     )
 
 
-def load_config(project_dir: str | PathLike | None = None) -> VersionPioneerConfigResult:
+def load_config(
+    project_dir: str | PathLike | None = None,
+) -> VersionPioneerConfigResult:
     """
     Load version-pioneer configuration from the appropriate config file.
 

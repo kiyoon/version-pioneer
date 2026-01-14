@@ -202,6 +202,7 @@ ignore = [
   "PT018",   # Assertion should be broken down into multiple parts
   "PLR6201", # Use set literal for membership test
   "DOC402",  # yield not documented in docstring
+  "RUF067",  # `__init__` module should only contain docstrings and re-exports
 ]
 
 [tool.ruff.lint.per-file-ignores]

@@ -55,7 +55,12 @@ def find_versionscript_from_config(
 
     if versionscript is None:
         # NOTE: even if we end up loading versionfile-sdist, we still need to check the valid config.
-        raise KeyError(f"Missing key 'versionscript' in {config_source}")
+        # Include full key path in error for pyproject.toml
+        if "pyproject.toml" in config_source:
+            key_prefix = "tool.version-pioneer."
+        else:
+            key_prefix = ""
+        raise KeyError(f"Missing key {key_prefix}versionscript in {config_source}")
 
     if either_versionfile_or_versionscript:
         versionfile: Path | None = get_config_value(
@@ -87,7 +92,7 @@ def find_versionscript_from_pyproject_toml_dict(
     return find_versionscript_from_config(
         config,
         either_versionfile_or_versionscript=either_versionfile_or_versionscript,
-        config_source="pyproject.toml [tool.version-pioneer]",
+        config_source="pyproject.toml",
     )
 
 
