@@ -21,6 +21,7 @@
 - 🦀 Works with any language, not just Python.
     - Version format `"digits"` generates digits-only version string which is useful for multi-language projects, Chrome Extension, etc. because their versioning standard is different.
     - CLI makes it easy to compute the version without vendoring anything in the project.
+    - Supports `version-pioneer.toml` config file for non-Python projects (no `pyproject.toml` needed).
 - 🧙‍♂️ Auto-magically infer version even when the git info is missing.
     - Downloaded from GitHub Releases? Read from the directory name.
         - The `parentdir_prefix` is automatically resolved from `pyproject.toml`'s source URL etc.
@@ -166,7 +167,14 @@ Unlike Versioneer, the configuration is located in two places: `pyproject.toml` 
 
 The idea is that the toml config just tells you where the script is (for build backends to identify them), and the script has everything it needs. 
 
-### `pyproject.toml` [tool.version-pioneer]: Configuration for build backends and Version-Pioneer CLI. 
+### `pyproject.toml` [tool.version-pioneer] or `version-pioneer.toml`: Configuration for build backends and Version-Pioneer CLI.
+
+For non-Python projects, you can use `version-pioneer.toml` instead of `pyproject.toml`. The config search algorithm (inspired by uv and ruff):
+
+1. Check for `version-pioneer.toml` → if found, use it
+2. Check for `pyproject.toml` with `[tool.version-pioneer]` section → if found, use it
+3. If neither found, walk up to parent directory and repeat
+4. Raise error if no valid config found
 
 - `versionscript`: Path to the versionscript to execute `get_version_dict()`. (e.g. `src/my_project/_version.py`)
 - `versionfile-sdist`: Path to save the resolved versionfile in the *sdist* build directory (e.g. `src/my_project/_version.py`)
