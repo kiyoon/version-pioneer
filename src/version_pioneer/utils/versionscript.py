@@ -36,6 +36,7 @@ RESOLUTION_FORMAT_TYPE = TypeVar(
 def find_versionscript_from_config(
     config: dict[str, Any],
     *,
+    project_root: Path | None = None,
     either_versionfile_or_versionscript: bool = True,
     config_source: str = "config",
 ) -> Path:
@@ -44,9 +45,17 @@ def find_versionscript_from_config(
 
     Args:
         config: Normalized config dict (without tool.version-pioneer prefix)
+        project_root: Project root directory for resolving relative paths.
+            If None, uses current working directory.
         either_versionfile_or_versionscript: If True, return versionfile-sdist if it exists
         config_source: Description for error messages
+
+    Returns:
+        Relative path to the versionscript or versionfile-sdist.
     """
+    if project_root is None:
+        project_root = Path.cwd()
+
     versionscript: Path | None = get_config_value(
         config,
         "versionscript",
@@ -68,11 +77,13 @@ def find_versionscript_from_config(
             "versionfile-sdist",
             return_path_object=True,
         )
-        if versionfile is not None and versionfile.exists():
+        # Resolve path relative to project_root for existence check
+        if versionfile is not None and (project_root / versionfile).exists():
             return versionfile
 
-    if not versionscript.exists():
-        raise FileNotFoundError(f"Version script not found: {versionscript}")
+    # Resolve path relative to project_root for existence check
+    if not (project_root / versionscript).exists():
+        raise FileNotFoundError(f"Version script not found: {project_root / versionscript}")
 
     return versionscript
 
@@ -80,6 +91,7 @@ def find_versionscript_from_config(
 def find_versionscript_from_pyproject_toml_dict(
     pyproject_toml_dict: dict[str, Any],
     *,
+    project_root: Path | None = None,
     either_versionfile_or_versionscript: bool = True,
 ):
     """
@@ -87,10 +99,17 @@ def find_versionscript_from_pyproject_toml_dict(
 
     This function is kept for backward compatibility with build hooks
     that receive pyproject.toml data directly (e.g., PDM context.config.data).
+
+    Args:
+        pyproject_toml_dict: The pyproject.toml dict
+        project_root: Project root directory for resolving relative paths.
+            If None, uses current working directory.
+        either_versionfile_or_versionscript: If True, return versionfile-sdist if it exists
     """
     config = normalize_pyproject_dict_to_config(pyproject_toml_dict)
     return find_versionscript_from_config(
         config,
+        project_root=project_root,
         either_versionfile_or_versionscript=either_versionfile_or_versionscript,
         config_source="pyproject.toml",
     )
@@ -125,6 +144,7 @@ def find_versionscript_from_project_dir(
 
     return config_result.project_root / find_versionscript_from_config(
         config_result.config,
+        project_root=config_result.project_root,
         either_versionfile_or_versionscript=either_versionfile_or_versionscript,
         config_source=config_result.source,
     )

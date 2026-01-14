@@ -111,6 +111,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             if versionfile_wheel is not None:
                 versionscript = find_versionscript_from_config(
                     config_result.config,
+                    project_root=config_result.project_root,
                     either_versionfile_or_versionscript=True,
                     config_source=config_result.source,
                 )
@@ -149,6 +150,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             if versionfile_wheel is not None:
                 versionscript = find_versionscript_from_config(
                     config_result.config,
+                    project_root=config_result.project_root,
                     either_versionfile_or_versionscript=True,
                     config_source=config_result.source,
                 )
@@ -268,6 +270,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             config_result = load_config()
             versionscript = find_versionscript_from_config(
                 config_result.config,
+                project_root=config_result.project_root,
                 either_versionfile_or_versionscript=True,
                 config_source=config_result.source,
             )
@@ -306,6 +309,7 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             config_result = load_config()
             versionscript = find_versionscript_from_config(
                 config_result.config,
+                project_root=config_result.project_root,
                 either_versionfile_or_versionscript=True,
                 config_source=config_result.source,
             )

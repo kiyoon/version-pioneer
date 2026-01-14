@@ -6,7 +6,10 @@ from pathlib import Path
 
 from pdm.backend.hooks.base import Context
 
-from version_pioneer.utils.toml import get_toml_value
+from version_pioneer.utils.config import (
+    get_config_value,
+    normalize_pyproject_dict_to_config,
+)
 from version_pioneer.utils.versionscript import (
     convert_version_dict,
     exec_versionscript,
@@ -16,11 +19,16 @@ from version_pioneer.utils.versionscript import (
 
 class VersionPioneerBuildHook:
     def pdm_build_initialize(self, context: Context):
+        # Get normalized config
+        config = normalize_pyproject_dict_to_config(context.config.data)
+
         # Update metadata version
         versionscript = find_versionscript_from_pyproject_toml_dict(
-            context.config.data, either_versionfile_or_versionscript=True
+            context.config.data,
+            project_root=context.root,
+            either_versionfile_or_versionscript=True,
         )
-        version_dict = exec_versionscript(versionscript)
+        version_dict = exec_versionscript(context.root / versionscript)
         context.config.metadata["version"] = version_dict["version"]
 
         # Write the static version file
@@ -28,18 +36,20 @@ class VersionPioneerBuildHook:
             try:
                 if context.target == "wheel":
                     versionfile = context.build_dir / Path(
-                        get_toml_value(
-                            context.config.data,
-                            ["tool", "version-pioneer", "versionfile-wheel"],
+                        get_config_value(
+                            config,
+                            "versionfile-wheel",
                             raise_error=True,
+                            config_source="pyproject.toml",
                         )
                     )
                 elif context.target == "sdist":
                     versionfile = context.build_dir / Path(
-                        get_toml_value(
-                            context.config.data,
-                            ["tool", "version-pioneer", "versionfile-sdist"],
+                        get_config_value(
+                            config,
+                            "versionfile-sdist",
                             raise_error=True,
+                            config_source="pyproject.toml",
                         )
                     )
                 else:
