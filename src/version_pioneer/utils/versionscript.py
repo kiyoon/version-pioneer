@@ -10,10 +10,10 @@ from types import CodeType
 from typing import Any, Literal, TypeVar
 
 from version_pioneer import template
-from version_pioneer.utils.toml import (
-    find_pyproject_toml,
-    get_toml_value,
-    load_toml,
+from version_pioneer.utils.config import (
+    get_config_value,
+    load_config,
+    normalize_pyproject_dict_to_config,
 )
 from version_pioneer.versionscript import VersionDict
 
@@ -33,27 +33,34 @@ RESOLUTION_FORMAT_TYPE = TypeVar(
 )
 
 
-def find_versionscript_from_pyproject_toml_dict(
-    pyproject_toml_dict: dict[str, Any],
+def find_versionscript_from_config(
+    config: dict[str, Any],
     *,
     either_versionfile_or_versionscript: bool = True,
-):
-    versionscript: Path | None = get_toml_value(
-        pyproject_toml_dict,
-        ["tool", "version-pioneer", "versionscript"],
+    config_source: str = "config",
+) -> Path:
+    """
+    Find versionscript from a normalized config dict.
+
+    Args:
+        config: Normalized config dict (without tool.version-pioneer prefix)
+        either_versionfile_or_versionscript: If True, return versionfile-sdist if it exists
+        config_source: Description for error messages
+    """
+    versionscript: Path | None = get_config_value(
+        config,
+        "versionscript",
         return_path_object=True,
     )
 
     if versionscript is None:
         # NOTE: even if we end up loading versionfile-sdist, we still need to check the valid config.
-        raise KeyError(
-            "Missing key tool.version-pioneer.versionscript in pyproject.toml"
-        )
+        raise KeyError(f"Missing key 'versionscript' in {config_source}")
 
     if either_versionfile_or_versionscript:
-        versionfile: Path | None = get_toml_value(
-            pyproject_toml_dict,
-            ["tool", "version-pioneer", "versionfile-sdist"],
+        versionfile: Path | None = get_config_value(
+            config,
+            "versionfile-sdist",
             return_path_object=True,
         )
         if versionfile is not None and versionfile.exists():
@@ -65,13 +72,37 @@ def find_versionscript_from_pyproject_toml_dict(
     return versionscript
 
 
+def find_versionscript_from_pyproject_toml_dict(
+    pyproject_toml_dict: dict[str, Any],
+    *,
+    either_versionfile_or_versionscript: bool = True,
+):
+    """
+    Find versionscript from pyproject.toml dict.
+
+    This function is kept for backward compatibility with build hooks
+    that receive pyproject.toml data directly (e.g., PDM context.config.data).
+    """
+    config = normalize_pyproject_dict_to_config(pyproject_toml_dict)
+    return find_versionscript_from_config(
+        config,
+        either_versionfile_or_versionscript=either_versionfile_or_versionscript,
+        config_source="pyproject.toml [tool.version-pioneer]",
+    )
+
+
 def find_versionscript_from_project_dir(
     project_dir: str | PathLike | None = None,
     *,
     either_versionfile_or_versionscript: bool = True,
 ):
     """
+    Find versionscript from project directory.
+
+    Now supports both version-pioneer.toml and pyproject.toml.
+
     Args:
+        project_dir: The root or child directory of the project.
         either_versionfile_or_versionscript: If True, return either versionfile-sdist if it exists,
             else versionscript.
             This is important because in sdist build, the versionfile is already evaluated
@@ -85,12 +116,12 @@ def find_versionscript_from_project_dir(
     if project_dir.is_file():
         raise NotADirectoryError(f"{project_dir} is not a directory.")
 
-    pyproject_toml_file = find_pyproject_toml(project_dir)
-    pyproject_toml = load_toml(pyproject_toml_file)
+    config_result = load_config(project_dir)
 
-    return pyproject_toml_file.parent / find_versionscript_from_pyproject_toml_dict(
-        pyproject_toml,
+    return config_result.project_root / find_versionscript_from_config(
+        config_result.config,
         either_versionfile_or_versionscript=either_versionfile_or_versionscript,
+        config_source=config_result.source,
     )
 
 

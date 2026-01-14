@@ -8,7 +8,7 @@ from typing import Any
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
-from version_pioneer.utils.toml import get_toml_value, load_toml
+from version_pioneer.utils.config import get_config_value, load_config
 from version_pioneer.utils.versionscript import (
     convert_version_dict,
     exec_versionscript,
@@ -34,7 +34,7 @@ class VersionPioneerBuildHook(BuildHookInterface):
         if version == "editable":
             return
 
-        pyproject_toml = load_toml(Path(self.root) / "pyproject.toml")
+        config_result = load_config(self.root)
 
         # This also checks the valid config, so run it first.
         versionscript = find_versionscript_from_project_dir(
@@ -44,18 +44,18 @@ class VersionPioneerBuildHook(BuildHookInterface):
 
         # In hatchling, versionfile-wheel setting doesn't get used.
         # Instead, the versionfile-sdist needs to be used to locate the build _version.py file.
-        versionfile_sdist: Path | None = get_toml_value(
-            pyproject_toml,
-            ["tool", "version-pioneer", "versionfile-sdist"],
+        versionfile_sdist: Path | None = get_config_value(
+            config_result.config,
+            "versionfile-sdist",
             return_path_object=True,
         )
         if versionfile_sdist is None:
-            print("No versionfile-sdist specified in pyproject.toml")
+            print(f"No versionfile-sdist specified in {config_result.source}")
             print("Skipping writing a constant version file")
             return
         else:
             # NOTE: Setting delete=True will delete too early on Windows
-            self.temp_versionfile = tempfile.NamedTemporaryFile(mode="w", delete=False)  # noqa: SIM115
+            self.temp_versionfile = tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8")  # noqa: SIM115
             version_dict = exec_versionscript(versionscript)
             self.temp_versionfile.write(
                 convert_version_dict(version_dict, output_format="python")

@@ -8,16 +8,12 @@ from pathlib import Path
 from typing import Any
 
 from version_pioneer.api import exec_versionscript_and_convert
-from version_pioneer.utils.toml import (
-    find_pyproject_toml,
-    get_toml_value,
-    load_toml,
-)
+from version_pioneer.utils.config import get_config_value, load_config
 from version_pioneer.utils.versionscript import (
     convert_version_dict,
     exec_versionscript,
+    find_versionscript_from_config,
     find_versionscript_from_project_dir,
-    find_versionscript_from_pyproject_toml_dict,
 )
 
 
@@ -107,18 +103,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 return
             # now locate _version.py in the new build/ directory and replace
             # it with an updated value
-            pyproject_toml_file = find_pyproject_toml()
-            pyproject_toml = load_toml(pyproject_toml_file)
-            versionfile_wheel: str | None = get_toml_value(
-                pyproject_toml,
-                ["tool", "version-pioneer", "versionfile-wheel"],
+            config_result = load_config()
+            versionfile_wheel: str | None = get_config_value(
+                config_result.config,
+                "versionfile-wheel",
             )
             if versionfile_wheel is not None:
-                versionscript = find_versionscript_from_pyproject_toml_dict(
-                    pyproject_toml, either_versionfile_or_versionscript=True
+                versionscript = find_versionscript_from_config(
+                    config_result.config,
+                    either_versionfile_or_versionscript=True,
+                    config_source=config_result.source,
                 )
                 target_versionfile_content = exec_versionscript_and_convert(
-                    versionscript, output_format="python"
+                    config_result.project_root / versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
                 print(f"UPDATING {target_versionfile}")
@@ -144,18 +141,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
                 return
             # now locate _version.py in the new build/ directory and replace
             # it with an updated value
-            pyproject_toml_file = find_pyproject_toml()
-            pyproject_toml = load_toml(pyproject_toml_file)
-            versionfile_wheel: str | None = get_toml_value(
-                pyproject_toml,
-                ["tool", "version-pioneer", "versionfile-wheel"],
+            config_result = load_config()
+            versionfile_wheel: str | None = get_config_value(
+                config_result.config,
+                "versionfile-wheel",
             )
             if versionfile_wheel is not None:
-                versionscript = find_versionscript_from_pyproject_toml_dict(
-                    pyproject_toml, either_versionfile_or_versionscript=True
+                versionscript = find_versionscript_from_config(
+                    config_result.config,
+                    either_versionfile_or_versionscript=True,
+                    config_source=config_result.source,
                 )
                 target_versionfile_content = exec_versionscript_and_convert(
-                    versionscript, output_format="python"
+                    config_result.project_root / versionscript, output_format="python"
                 )
                 target_versionfile = Path(self.build_lib) / versionfile_wheel
                 if not target_versionfile.exists():
@@ -173,18 +171,17 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
     cmds["build_ext"] = CmdBuildExt
 
     def _run_directly_inside_source_tree(run_func: Callable):
-        pyproject_toml_file = find_pyproject_toml()
-        pyproject_toml = load_toml(pyproject_toml_file)
-        versionscript: Path | None = get_toml_value(
-            pyproject_toml,
-            ["tool", "version-pioneer", "versionscript"],
+        config_result = load_config()
+        versionscript: Path | None = get_config_value(
+            config_result.config,
+            "versionscript",
             return_path_object=True,
         )
         if versionscript is None:
-            raise ValueError("versionscript is not set in pyproject.toml")
-        versionfile_sdist: Path | None = get_toml_value(
-            pyproject_toml,
-            ["tool", "version-pioneer", "versionfile-sdist"],
+            raise ValueError(f"versionscript is not set in {config_result.source}")
+        versionfile_sdist: Path | None = get_config_value(
+            config_result.config,
+            "versionfile-sdist",
             return_path_object=True,
         )
         if versionfile_sdist is None:
@@ -192,8 +189,8 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             run_func()
             return
 
-        versionscript = pyproject_toml_file.parent / versionscript
-        versionfile_sdist = pyproject_toml_file.parent / versionfile_sdist
+        versionscript = config_result.project_root / versionscript
+        versionfile_sdist = config_result.project_root / versionfile_sdist
 
         if versionscript == versionfile_sdist:
             # HACK: replace _version.py directly in the source tree during build, and restore it.
@@ -268,10 +265,11 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
             # Modify the filelist and normalize it
             # self.filelist.append("versioneer.py")
 
-            pyproject_toml_file = find_pyproject_toml()
-            pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript = find_versionscript_from_pyproject_toml_dict(
-                pyproject_toml, either_versionfile_or_versionscript=True
+            config_result = load_config()
+            versionscript = find_versionscript_from_config(
+                config_result.config,
+                either_versionfile_or_versionscript=True,
+                config_source=config_result.source,
             )
 
             # There are rare cases where versionscript might not be
@@ -305,18 +303,19 @@ def get_cmdclass(cmdclass: dict[str, Any] | None = None):
 
     class CmdSdist(_sdist):
         def run(self) -> None:
-            pyproject_toml_file = find_pyproject_toml()
-            pyproject_toml = load_toml(pyproject_toml_file)
-            versionscript = find_versionscript_from_pyproject_toml_dict(
-                pyproject_toml, either_versionfile_or_versionscript=True
+            config_result = load_config()
+            versionscript = find_versionscript_from_config(
+                config_result.config,
+                either_versionfile_or_versionscript=True,
+                config_source=config_result.source,
             )
             self.version_dict = exec_versionscript(
-                pyproject_toml_file.parent / versionscript
+                config_result.project_root / versionscript
             )
 
-            self.versionfile_sdist: Path | None = get_toml_value(
-                pyproject_toml,
-                ["tool", "version-pioneer", "versionfile-sdist"],
+            self.versionfile_sdist: Path | None = get_config_value(
+                config_result.config,
+                "versionfile-sdist",
                 return_path_object=True,
             )
 

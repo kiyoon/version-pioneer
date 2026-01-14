@@ -110,7 +110,7 @@ def setup_logging(
     logging.basicConfig(
         format="",
         level=logging.NOTSET,
-        stream=open(os.devnull, "w"),  # noqa: SIM115
+        stream=open(os.devnull, "w", encoding="utf-8"),  # noqa: SIM115
     )
 
     # If you want to suppress logs from other modules, set their level to WARNING or higher

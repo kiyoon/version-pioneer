@@ -77,11 +77,8 @@ def install(
         vendor: Install the full versionscript. --no-vendor to import from version_pioneer.
     """
     from version_pioneer.api import get_versionscript_core_code
-    from version_pioneer.utils.toml import (
-        find_pyproject_toml,
-        get_toml_value,
-        load_toml,
-    )
+    from version_pioneer.utils.config import get_config_value, load_config
+    from version_pioneer.utils.toml import get_toml_value, load_toml
 
     def _write_file_with_diff_confirm(file: Path, content: str):
         if file.exists():
@@ -107,15 +104,15 @@ def install(
         file.write_text(content, encoding="utf-8")
         rich.print(f"[green]File written:[/green] {file}")
 
-    pyproject_toml_file = find_pyproject_toml(project_dir)
-    pyproject_toml = load_toml(pyproject_toml_file)
+    config_result = load_config(project_dir)
+    project_dir = config_result.project_root
 
-    project_dir = pyproject_toml_file.parent
     versionscript_file = project_dir / Path(
-        get_toml_value(
-            pyproject_toml,
-            ["tool", "version-pioneer", "versionscript"],
+        get_config_value(
+            config_result.config,
+            "versionscript",
             raise_error=True,
+            config_source=config_result.source,
         )
     )
 
@@ -145,20 +142,22 @@ def install(
             rich.print("[green]at the top![/green]")
 
     # Using setuptools.build_meta backend?
-    try:
+    # This requires reading pyproject.toml specifically (build-backend is always there)
+    pyproject_toml_file = project_dir / "pyproject.toml"
+    build_backend = None
+    if pyproject_toml_file.exists():
+        pyproject_toml = load_toml(pyproject_toml_file)
         build_backend = get_toml_value(
-            pyproject_toml, ["build-system", "build-backend"], raise_error=True
+            pyproject_toml, ["build-system", "build-backend"]
         )
-    except KeyError:
+
+    if build_backend is None:
         confirm = Confirm.ask(
             "Are you using setuptools.build_meta backend? Install setup.py?",
             default=False,
         )
-
         if confirm:
             build_backend = "setuptools.build_meta"
-        else:
-            build_backend = None
 
     if build_backend is not None and build_backend == "setuptools.build_meta":
         # install setup.py
