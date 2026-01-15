@@ -83,7 +83,9 @@ def find_versionscript_from_config(
 
     # Resolve path relative to project_root for existence check
     if not (project_root / versionscript).exists():
-        raise FileNotFoundError(f"Version script not found: {project_root / versionscript}")
+        raise FileNotFoundError(
+            f"Version script not found: {project_root / versionscript}"
+        )
 
     return versionscript
 
