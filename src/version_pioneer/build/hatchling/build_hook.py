@@ -55,7 +55,9 @@ class VersionPioneerBuildHook(BuildHookInterface):
             return
         else:
             # NOTE: Setting delete=True will delete too early on Windows
-            self.temp_versionfile = tempfile.NamedTemporaryFile(mode="w", delete=False)  # noqa: SIM115
+            self.temp_versionfile = tempfile.NamedTemporaryFile(  # noqa: SIM115
+                mode="w", delete=False, encoding="utf-8"
+            )
             version_dict = exec_versionscript(versionscript)
             self.temp_versionfile.write(
                 convert_version_dict(version_dict, output_format="python")

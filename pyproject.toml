@@ -118,6 +118,8 @@ reportDuplicateImport = true
 namespace-packages = ["scripts"]
 
 [tool.ruff.lint]
+preview = true
+
 # OPTIONALLY ADD MORE LATER
 select = [
   # flake8
@@ -191,6 +193,16 @@ ignore = [
   "PLR2004", # magic value comparison
   "PLW2901", # loop variable overwritten by assignment target
   "PLC0415", # import should be at the top-level
+  "PLR6301", # Method could be a function, class method, or static method
+  "DOC501",  # Raised exception missing from docstring
+  "DOC102",  # Documented parameter not in function signature
+  "RUF052",  # Local dummy variable accessed
+  "PYI066",  # Put branches for newer Python versions first
+  "PT011",   # pytest.raises too broad
+  "PT018",   # Assertion should be broken down into multiple parts
+  "PLR6201", # Use set literal for membership test
+  "DOC402",  # yield not documented in docstring
+  "RUF067",  # `__init__` module should only contain docstrings and re-exports
 ]
 
 [tool.ruff.lint.per-file-ignores]
