@@ -132,6 +132,7 @@ def _is_master_connection_ref(branch_name: str) -> bool:
         return branch_name[len("origin/") :] in MASTER_BRANCHES
     return False
 
+
 if sys.platform == "win32":
     GIT_COMMANDS = ["git.cmd", "git.exe"]
 else:
