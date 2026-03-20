@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       ruff-select:
-        description: 'ruff select'
+        description: "ruff select"
         default: I,D20,D21,UP00,UP032,UP034
       ruff-ignore:
-        description: 'ruff ignore'
+        description: "ruff ignore"
         default: D212
 
 jobs:
