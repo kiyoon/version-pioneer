@@ -6,7 +6,7 @@ on:
       - main
       - master
     paths:
-      - "docs/CHANGELOG.md"
+      - 'docs/CHANGELOG.md'
 
 jobs:
   release:
@@ -15,7 +15,7 @@ jobs:
       RELEASE_VERSION: ${{ steps.parse_commit.outputs.RELEASE_VERSION }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Parse commit message to get version
         id: parse_commit
@@ -56,7 +56,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.release.outputs.RELEASE_VERSION }}
           fetch-depth: 0 # full history
