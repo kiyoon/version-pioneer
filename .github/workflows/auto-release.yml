@@ -6,7 +6,7 @@ on:
       - main
       - master
     paths:
-      - 'docs/CHANGELOG.md'
+      - "docs/CHANGELOG.md"
 
 jobs:
   release:
