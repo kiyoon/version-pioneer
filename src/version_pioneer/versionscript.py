@@ -121,6 +121,17 @@ except NameError:
 
 MASTER_BRANCHES = ("master", "main")
 
+
+def _is_master_connection_ref(branch_name: str) -> bool:
+    """Return True for local or origin-tracking master/main refs."""
+    if branch_name in MASTER_BRANCHES:
+        return True
+    if branch_name.startswith("remotes/origin/"):
+        return branch_name[len("remotes/origin/") :] in MASTER_BRANCHES
+    if branch_name.startswith("origin/"):
+        return branch_name[len("origin/") :] in MASTER_BRANCHES
+    return False
+
 if sys.platform == "win32":
     GIT_COMMANDS = ["git.cmd", "git.exe"]
 else:
@@ -278,16 +289,11 @@ class GitMasterDistance:
         distance_from_master = 0
         master_commit = None
         for commit in all_commits:
-            out, _rc = git_runner(
-                ["branch", "--contains", commit],
-                cwd=cwd,
-            )
+            out, _rc = git_runner(["branch", "-a", "--contains", commit], cwd=cwd)
             branches = out.splitlines()
             # Strip off the leading "* " from the list of branches.
             branches = [branch.lstrip("* ") for branch in branches]
-            if any(
-                master_branch_name in branches for master_branch_name in MASTER_BRANCHES
-            ):
+            if any(_is_master_connection_ref(branch) for branch in branches):
                 master_commit = commit
                 break
 
@@ -464,8 +470,9 @@ class GitPieces:
             # distance: number of commits since tag
             pieces["distance"] = int(mo.group(2))
 
-            # commit: short hex revision ID
-            pieces["short"] = mo.group(3)
+            # Normalize to 7 hex chars (excluding the leading "g") for stable
+            # rendering across clones/CI.
+            pieces["short"] = mo.group(3)[:7]
 
         else:
             # HEX: no tags
